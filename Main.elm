@@ -105,13 +105,19 @@ formulaToString f =
     Impl f1 f2 ->
        addPar f1 ++ " ⇒ " ++ addPar f2
 
+smallMargin = ("margin" , "4px 0")
+bigMargin = ("margin" , "10px 0")
+smallPadding = ("padding" , "2px")
+grayBackground = ("background-color" , "gray")
+redBorder = ("border" , "2px solid red")
+
 
 viewFormula : Signal.Address Action -> Int -> Formula -> Html
 viewFormula address index formula =
   div
     [ style
-        [ ("margin" , "4px 0")
-        , ("padding" , "2px")
+        [ smallMargin
+        , smallPadding
         ]
     ]
     [ span
@@ -120,9 +126,9 @@ viewFormula address index formula =
       , onDragOver address NoOp
       , onDrop address <| Drop (index , formula)
       , style
-          [ ("background-color" , "gray")
-          , ("border" , "2px solid red")
-          , ("padding" , "2px")
+          [ grayBackground
+          , redBorder
+          , smallPadding
           ]
       ]
       [ text <| formulaToString formula ]
@@ -135,7 +141,8 @@ view address model =
     [ style [("margin" , "10px")]
     ]
     [ div [] (Array.toList <| Array.indexedMap (viewFormula address) model.context)
-    , div [ style  [ ("margin" , "10px 0")] ] [text "The goal is to get D." ]
+    , div [ style  [ bigMargin ] ] [ text "The goal is to get D." ]
+    , div [ style  [ bigMargin ] ] [ text "Try moving A on A ⇒ B." ]
     ]
 
 
