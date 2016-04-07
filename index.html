@@ -10316,6 +10316,7 @@ Elm.Main.make = function (_elm) {
    var Drop = function (a) {    return {ctor: "Drop",_0: a};};
    var DragStart = function (a) {    return {ctor: "DragStart",_0: a};};
    var NoOp = {ctor: "NoOp"};
+   var italic = {ctor: "_Tuple2",_0: "font-style",_1: "italic"};
    var redBorder = {ctor: "_Tuple2",_0: "border",_1: "2px solid red"};
    var grayBackground = {ctor: "_Tuple2",_0: "background-color",_1: "gray"};
    var smallPadding = {ctor: "_Tuple2",_0: "padding",_1: "2px"};
@@ -10375,7 +10376,7 @@ Elm.Main.make = function (_elm) {
       _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "margin",_1: "10px"}]))]),
       _U.list([A2($Html.div,_U.list([]),$Array.toList(A2($Array.indexedMap,viewFormula(address),model.context)))
               ,A2($Html.div,_U.list([$Html$Attributes.style(_U.list([bigMargin]))]),_U.list([$Html.text("The goal is to get D.")]))
-              ,A2($Html.div,_U.list([$Html$Attributes.style(_U.list([bigMargin]))]),_U.list([$Html.text("Try moving A on A ⇒ B.")]))]));
+              ,A2($Html.div,_U.list([$Html$Attributes.style(_U.list([bigMargin,italic]))]),_U.list([$Html.text("Try moving A on A ⇒ B.")]))]));
    });
    var singleton = function (x) {    return _U.list([x]);};
    var main = $StartApp$Simple.start({model: initModel,view: view,update: update});
