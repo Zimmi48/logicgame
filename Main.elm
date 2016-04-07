@@ -70,6 +70,7 @@ type Formula
 type alias Model =
   { context : Array Formula
   , selected : Maybe Formula
+  , showHint : Bool
   }
 
 
@@ -82,6 +83,7 @@ initModel =
     , Impl (Var "B") (Var "C")
     ] |> Array.fromList
   , selected = Nothing
+  , showHint = True
   }
 
 
@@ -143,7 +145,9 @@ view address model =
     ]
     [ div [] (Array.toList <| Array.indexedMap (viewFormula address) model.context)
     , div [ style  [ bigMargin ] ] [ text "The goal is to get D." ]
-    , div [ style  [ bigMargin , italic ] ] [ text "Try moving A on A ⇒ B." ]
+    , div
+        [ style  [ bigMargin , italic ] ]
+        [ text <| if model.showHint then "Try moving A on A ⇒ B." else "" ]
     ]
 
 
@@ -178,5 +182,6 @@ update action model =
       in
           { context = updatedContext
           , selected = Nothing
+          , showHint = False
           }
 
