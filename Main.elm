@@ -134,7 +134,9 @@ view address model =
   div
     [ style [("margin" , "10px")]
     ]
-    (Array.toList <| Array.indexedMap (viewFormula address) model.context)
+    [ div [] (Array.toList <| Array.indexedMap (viewFormula address) model.context)
+    , div [ style  [ ("margin" , "10px 0")] ] [text "The goal is to get D." ]
+    ]
 
 
 {- # ACTIONS AND UPDATE -}
