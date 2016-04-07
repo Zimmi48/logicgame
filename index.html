@@ -10298,21 +10298,6 @@ Elm.Main.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm),
    $StartApp$Simple = Elm.StartApp.Simple.make(_elm);
    var _op = {};
-   var update = F2(function (action,model) {
-      var _p0 = action;
-      switch (_p0.ctor)
-      {case "NoOp": return model;
-         case "DragStart": return _U.update(model,{selected: $Maybe.Just(_p0._0._1)});
-         default: var updatedContext = function () {
-              var _p1 = {ctor: "_Tuple2",_0: _p0._0._1,_1: model.selected};
-              if (_p1.ctor === "_Tuple2" && _p1._0.ctor === "Impl" && _p1._1.ctor === "Just") {
-                    return _U.eq(_p1._0._0,_p1._1._0) ? A3($Array.set,_p0._0._0,_p1._0._1,model.context) : model.context;
-                 } else {
-                    return model.context;
-                 }
-           }();
-           return {context: updatedContext,selected: $Maybe.Nothing,showHint: false};}
-   });
    var Drop = function (a) {    return {ctor: "Drop",_0: a};};
    var DragStart = function (a) {    return {ctor: "DragStart",_0: a};};
    var NoOp = {ctor: "NoOp"};
@@ -10324,22 +10309,22 @@ Elm.Main.make = function (_elm) {
    var bigMargin = {ctor: "_Tuple2",_0: "margin",_1: "10px 0"};
    var smallMargin = {ctor: "_Tuple2",_0: "margin",_1: "4px 0"};
    var addPar = function (f) {
-      var _p2 = f;
-      if (_p2.ctor === "Var") {
-            return _p2._0;
+      var _p0 = f;
+      if (_p0.ctor === "Var") {
+            return _p0._0;
          } else {
             return A2($Basics._op["++"],"(",A2($Basics._op["++"],formulaToString(f),")"));
          }
    };
    var formulaToString = function (f) {
-      var _p3 = f;
-      if (_p3.ctor === "Var") {
-            return _p3._0;
+      var _p1 = f;
+      if (_p1.ctor === "Var") {
+            return _p1._0;
          } else {
-            return A2($Basics._op["++"],addPar(_p3._0),A2($Basics._op["++"]," ⇒ ",addPar(_p3._1)));
+            return A2($Basics._op["++"],addPar(_p1._0),A2($Basics._op["++"]," ⇒ ",addPar(_p1._1)));
          }
    };
-   var Model = F3(function (a,b,c) {    return {context: a,selected: b,showHint: c};});
+   var Model = F3(function (a,b,c) {    return {context: a,selected: b,message: c};});
    var Impl = F2(function (a,b) {    return {ctor: "Impl",_0: a,_1: b};});
    var Var = function (a) {    return {ctor: "Var",_0: a};};
    var initModel = {context: $Array.fromList(_U.list([A2(Impl,Var("A"),Var("B"))
@@ -10347,18 +10332,36 @@ Elm.Main.make = function (_elm) {
                                                      ,Var("A")
                                                      ,A2(Impl,Var("B"),Var("C"))]))
                    ,selected: $Maybe.Nothing
-                   ,showHint: true};
+                   ,message: "Try moving A on A ⇒ B."};
+   var update = F2(function (action,model) {
+      var _p2 = action;
+      switch (_p2.ctor)
+      {case "NoOp": return model;
+         case "DragStart": return _U.update(model,{selected: $Maybe.Just(_p2._0._1)});
+         default: var _p4 = _p2._0._1;
+           var updatedFormula = function () {
+              var _p3 = {ctor: "_Tuple2",_0: _p4,_1: model.selected};
+              if (_p3.ctor === "_Tuple2" && _p3._0.ctor === "Impl" && _p3._1.ctor === "Just") {
+                    return _U.eq(_p3._0._0,_p3._1._0) ? _p3._0._1 : _p4;
+                 } else {
+                    return _p4;
+                 }
+           }();
+           return {context: A3($Array.set,_p2._0._0,updatedFormula,model.context)
+                  ,selected: $Maybe.Nothing
+                  ,message: _U.eq(updatedFormula,Var("D")) ? "You win!" : ""};}
+   });
    var onDragOver = F2(function (addr,msg) {
       return A4($Html$Events.onWithOptions,
       "dragover",
       {preventDefault: true,stopPropagation: false},
       $Json$Decode.value,
-      function (_p4) {
+      function (_p5) {
          return A2($Signal.message,addr,msg);
       });
    });
    var messageOn = F3(function (name,addr,msg) {
-      return A3($Html$Events.on,name,$Json$Decode.value,function (_p5) {    return A2($Signal.message,addr,msg);});
+      return A3($Html$Events.on,name,$Json$Decode.value,function (_p6) {    return A2($Signal.message,addr,msg);});
    });
    var onDragStart = messageOn("dragstart");
    var onDrop = messageOn("drop");
@@ -10378,9 +10381,7 @@ Elm.Main.make = function (_elm) {
       _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "margin",_1: "10px"}]))]),
       _U.list([A2($Html.div,_U.list([]),$Array.toList(A2($Array.indexedMap,viewFormula(address),model.context)))
               ,A2($Html.div,_U.list([$Html$Attributes.style(_U.list([bigMargin]))]),_U.list([$Html.text("The goal is to get D.")]))
-              ,A2($Html.div,
-              _U.list([$Html$Attributes.style(_U.list([bigMargin,italic]))]),
-              _U.list([$Html.text(model.showHint ? "Try moving A on A ⇒ B." : "")]))]));
+              ,A2($Html.div,_U.list([$Html$Attributes.style(_U.list([bigMargin,italic]))]),_U.list([$Html.text(model.message)]))]));
    });
    var singleton = function (x) {    return _U.list([x]);};
    var main = $StartApp$Simple.start({model: initModel,view: view,update: update});
