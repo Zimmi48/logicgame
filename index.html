@@ -10316,6 +10316,11 @@ Elm.Main.make = function (_elm) {
    var Drop = function (a) {    return {ctor: "Drop",_0: a};};
    var DragStart = function (a) {    return {ctor: "DragStart",_0: a};};
    var NoOp = {ctor: "NoOp"};
+   var redBorder = {ctor: "_Tuple2",_0: "border",_1: "2px solid red"};
+   var grayBackground = {ctor: "_Tuple2",_0: "background-color",_1: "gray"};
+   var smallPadding = {ctor: "_Tuple2",_0: "padding",_1: "2px"};
+   var bigMargin = {ctor: "_Tuple2",_0: "margin",_1: "10px 0"};
+   var smallMargin = {ctor: "_Tuple2",_0: "margin",_1: "4px 0"};
    var addPar = function (f) {
       var _p2 = f;
       if (_p2.ctor === "Var") {
@@ -10356,24 +10361,21 @@ Elm.Main.make = function (_elm) {
    var onDrop = messageOn("drop");
    var viewFormula = F3(function (address,index,formula) {
       return A2($Html.div,
-      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "margin",_1: "4px 0"},{ctor: "_Tuple2",_0: "padding",_1: "2px"}]))]),
+      _U.list([$Html$Attributes.style(_U.list([smallMargin,smallPadding]))]),
       _U.list([A2($Html.span,
       _U.list([$Html$Attributes.draggable("true")
               ,A2(onDragStart,address,DragStart({ctor: "_Tuple2",_0: index,_1: formula}))
               ,A2(onDragOver,address,NoOp)
               ,A2(onDrop,address,Drop({ctor: "_Tuple2",_0: index,_1: formula}))
-              ,$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "background-color",_1: "gray"}
-                                              ,{ctor: "_Tuple2",_0: "border",_1: "2px solid red"}
-                                              ,{ctor: "_Tuple2",_0: "padding",_1: "2px"}]))]),
+              ,$Html$Attributes.style(_U.list([grayBackground,redBorder,smallPadding]))]),
       _U.list([$Html.text(formulaToString(formula))]))]));
    });
    var view = F2(function (address,model) {
       return A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "margin",_1: "10px"}]))]),
       _U.list([A2($Html.div,_U.list([]),$Array.toList(A2($Array.indexedMap,viewFormula(address),model.context)))
-              ,A2($Html.div,
-              _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "margin",_1: "10px 0"}]))]),
-              _U.list([$Html.text("The goal is to get D.")]))]));
+              ,A2($Html.div,_U.list([$Html$Attributes.style(_U.list([bigMargin]))]),_U.list([$Html.text("The goal is to get D.")]))
+              ,A2($Html.div,_U.list([$Html$Attributes.style(_U.list([bigMargin]))]),_U.list([$Html.text("Try moving A on A ⇒ B.")]))]));
    });
    var singleton = function (x) {    return _U.list([x]);};
    var main = $StartApp$Simple.start({model: initModel,view: view,update: update});
