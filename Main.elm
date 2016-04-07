@@ -53,7 +53,7 @@ view address model =
     [ style [("margin" , "10px")]
     ]
     [ Game.view (Signal.forwardTo address GameAction) model.game
-    , button [] [ text "Restart" ]
+    , button [ onClick address Restart ] [ text "Restart" ]
     , button [ disabled (not model.nextActive) ] [ text "Next level" ]
     ]
 
@@ -64,6 +64,7 @@ view address model =
 type Action
   = NoOp
   | GameAction Game.Action
+  | Restart
 
 
 update : Action -> Model -> Model
@@ -79,4 +80,7 @@ update action model =
         { game = game
         , nextActive = game.finished
         }
+
+    Restart ->
+      initModel
 
