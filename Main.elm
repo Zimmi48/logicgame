@@ -1,3 +1,15 @@
+module Main (main) where
+
+
+{-|
+# Game of logic
+
+Copyright Théo Zimmermann 2016. License MPL 2.0
+
+@docs main
+-}
+
+
 import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
@@ -9,6 +21,8 @@ import StartApp.Simple as StartApp
 {- # MAIN -}
 
 
+{-| Run the game. -}
+main : Signal Html
 main =
   StartApp.start { model = initModel, view = view, update = update }
 
