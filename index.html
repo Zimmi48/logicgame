@@ -10370,7 +10370,10 @@ Elm.Main.make = function (_elm) {
    var view = F2(function (address,model) {
       return A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "margin",_1: "10px"}]))]),
-      $Array.toList(A2($Array.indexedMap,viewFormula(address),model.context)));
+      _U.list([A2($Html.div,_U.list([]),$Array.toList(A2($Array.indexedMap,viewFormula(address),model.context)))
+              ,A2($Html.div,
+              _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "margin",_1: "10px 0"}]))]),
+              _U.list([$Html.text("The goal is to get D.")]))]));
    });
    var singleton = function (x) {    return _U.list([x]);};
    var main = $StartApp$Simple.start({model: initModel,view: view,update: update});
