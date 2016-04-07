@@ -110,6 +110,7 @@ bigMargin = ("margin" , "10px 0")
 smallPadding = ("padding" , "2px")
 grayBackground = ("background-color" , "gray")
 redBorder = ("border" , "2px solid red")
+italic = ("font-style" , "italic")
 
 
 viewFormula : Signal.Address Action -> Int -> Formula -> Html
@@ -142,7 +143,7 @@ view address model =
     ]
     [ div [] (Array.toList <| Array.indexedMap (viewFormula address) model.context)
     , div [ style  [ bigMargin ] ] [ text "The goal is to get D." ]
-    , div [ style  [ bigMargin ] ] [ text "Try moving A on A ⇒ B." ]
+    , div [ style  [ bigMargin , italic ] ] [ text "Try moving A on A ⇒ B." ]
     ]
 
 
