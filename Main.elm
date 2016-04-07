@@ -112,6 +112,7 @@ bigMargin = ("margin" , "10px 0")
 smallPadding = ("padding" , "2px")
 grayBackground = ("background-color" , "gray")
 redBorder = ("border" , "2px solid red")
+boxHeight = ("height" , "30px")
 italic = ("font-style" , "italic")
 
 
@@ -121,6 +122,7 @@ viewFormula address index formula =
     [ style
         [ smallMargin
         , smallPadding
+        , boxHeight
         ]
     ]
     [ span
