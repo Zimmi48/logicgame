@@ -13,9 +13,10 @@ Copyright Théo Zimmermann 2016. License MPL 2.0
 import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
-import Json.Decode as Json
+import Json.Decode
 import Array exposing (Array)
 import StartApp.Simple as StartApp
+import Native.DragDrop
 
 
 {- # MAIN -}
@@ -36,12 +37,27 @@ singleton x = [x]
 
 {- ## Custom events -}
 
-
+{-
 messageOn : String -> Signal.Address a -> a -> Attribute
 messageOn name addr msg =
   on name Json.value (\_ -> Signal.message addr msg)
+-}
+
+onDragOver : Signal.Address a -> a -> Attribute
+onDragOver addr msg =
+  onWithOptions "dragover" {preventDefault = True, stopPropagation = False} (Json.Decode.succeed ()) (\_ -> Signal.message addr msg)
 
 
+onDrop : Signal.Address a -> a -> Attribute
+onDrop addr msg =
+  on "drop" (Json.Decode.succeed ()) (\_ -> Signal.message addr msg)
+
+
+onDragStart : Signal.Address a -> a -> Attribute
+onDragStart addr msg =
+  Native.DragDrop.onDragStart {preventDefault = False, stopPropagation = False} (Json.Decode.succeed ()) (\_ -> Signal.message addr msg)
+
+{-
 onDragStart = messageOn "dragstart"
 
 
@@ -54,7 +70,7 @@ onDragOver addr msg =
 
 
 onDrop = messageOn "drop"
-
+-}
 
 {- # MODEL -}
 
