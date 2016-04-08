@@ -10279,7 +10279,58 @@ Elm.StartApp.Simple.make = function (_elm) {
    };
    var Config = F3(function (a,b,c) {    return {model: a,view: b,update: c};});
    return _elm.StartApp.Simple.values = {_op: _op,Config: Config,start: start};
-};Elm.Game = Elm.Game || {};
+};Elm.Native.DragDrop = {};
+
+Elm.Native.DragDrop.make = function(localRuntime) {
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.DragDrop = localRuntime.Native.DragDrop || {};
+	if (localRuntime.Native.DragDrop.values) {
+		return localRuntime.Native.DragDrop.values;
+	}
+
+  var Json = Elm.Native.Json.make(localRuntime);
+  var Signal = Elm.Native.Signal.make(localRuntime);
+  var VirtualDom = Elm.Native.VirtualDom.make(localRuntime);
+
+  function property(key, value)
+	{
+		return {
+			key: key,
+			value: value
+		};
+	}
+
+  function onDragStart(options, decoder, createMessage)
+	{
+    var name = 'dragstart';
+		function eventHandler(event)
+		{
+      event.dataTransfer.setDragImage(event.target, 0, 0);
+      // This stupid setData call is necessary to make drag and drop work on FF
+      event.dataTransfer.setData("text","");
+
+			var value = A2(Json.runDecoderValue, decoder, event);
+			if (value.ctor === 'Ok')
+			{
+				if (options.stopPropagation)
+				{
+					event.stopPropagation();
+				}
+				if (options.preventDefault)
+				{
+					event.preventDefault();
+				}
+				Signal.sendMessage(createMessage(value._0));
+			}
+		}
+		return property('on' + name, eventHandler);
+	}
+
+  return localRuntime.Native.Json.values = {
+    onDragStart: F3(onDragStart)
+  };
+};
+Elm.Game = Elm.Game || {};
 Elm.Game.make = function (_elm) {
    "use strict";
    _elm.Game = _elm.Game || {};
@@ -10294,6 +10345,7 @@ Elm.Game.make = function (_elm) {
    $Json$Decode = Elm.Json.Decode.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
+   $Native$DragDrop = Elm.Native.DragDrop.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $StartApp$Simple = Elm.StartApp.Simple.make(_elm);
@@ -10361,20 +10413,26 @@ Elm.Game.make = function (_elm) {
                   ,message: finished ? "You win!" : ""
                   ,finished: finished};}
    });
-   var onDragOver = F2(function (addr,msg) {
-      return A4($Html$Events.onWithOptions,
-      "dragover",
-      {preventDefault: true,stopPropagation: false},
-      $Json$Decode.value,
+   var onDragStart = F2(function (addr,msg) {
+      return A3($Native$DragDrop.onDragStart,
+      {preventDefault: false,stopPropagation: false},
+      $Json$Decode.succeed({ctor: "_Tuple0"}),
       function (_p5) {
          return A2($Signal.message,addr,msg);
       });
    });
-   var messageOn = F3(function (name,addr,msg) {
-      return A3($Html$Events.on,name,$Json$Decode.value,function (_p6) {    return A2($Signal.message,addr,msg);});
+   var onDrop = F2(function (addr,msg) {
+      return A3($Html$Events.on,"drop",$Json$Decode.succeed({ctor: "_Tuple0"}),function (_p6) {    return A2($Signal.message,addr,msg);});
    });
-   var onDragStart = messageOn("dragstart");
-   var onDrop = messageOn("drop");
+   var onDragOver = F2(function (addr,msg) {
+      return A4($Html$Events.onWithOptions,
+      "dragover",
+      {preventDefault: true,stopPropagation: false},
+      $Json$Decode.succeed({ctor: "_Tuple0"}),
+      function (_p7) {
+         return A2($Signal.message,addr,msg);
+      });
+   });
    var viewFormula = F3(function (address,index,formula) {
       return A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([smallMargin,smallPadding,fixedHeight]))]),
@@ -10398,10 +10456,9 @@ Elm.Game.make = function (_elm) {
    return _elm.Game.values = {_op: _op
                              ,main: main
                              ,singleton: singleton
-                             ,messageOn: messageOn
-                             ,onDragStart: onDragStart
                              ,onDragOver: onDragOver
                              ,onDrop: onDrop
+                             ,onDragStart: onDragStart
                              ,Var: Var
                              ,Impl: Impl
                              ,levelMax: levelMax
