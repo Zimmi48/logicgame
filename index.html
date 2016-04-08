@@ -10324,6 +10324,7 @@ Elm.Game.make = function (_elm) {
          }
    };
    var Model = F4(function (a,b,c,d) {    return {context: a,selected: b,message: c,finished: d};});
+   var levelMax = 1;
    var Impl = F2(function (a,b) {    return {ctor: "Impl",_0: a,_1: b};});
    var Var = function (a) {    return {ctor: "Var",_0: a};};
    var levels = function (index) {
@@ -10354,7 +10355,7 @@ Elm.Game.make = function (_elm) {
                     return _p4;
                  }
            }();
-           var finished = _U.eq(updatedFormula,Var("D"));
+           var finished = model.finished || _U.eq(updatedFormula,Var("D"));
            return {context: A3($Array.set,_p2._0._0,updatedFormula,model.context)
                   ,selected: $Maybe.Nothing
                   ,message: finished ? "You win!" : ""
@@ -10403,6 +10404,7 @@ Elm.Game.make = function (_elm) {
                              ,onDrop: onDrop
                              ,Var: Var
                              ,Impl: Impl
+                             ,levelMax: levelMax
                              ,levels: levels
                              ,Model: Model
                              ,init: init
@@ -10447,7 +10449,9 @@ Elm.Main.make = function (_elm) {
       _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "margin",_1: "10px"}]))]),
       _U.list([A2($Html.button,_U.list([A2($Html$Events.onClick,address,Restart)]),_U.list([$Html.text("Restart")]))
               ,A2($Html.button,
-              _U.list([$Html$Attributes.disabled($Basics.not(model.nextActive)),A2($Html$Events.onClick,address,NextLevel)]),
+              _U.list([$Html$Attributes.disabled($Basics.not(model.nextActive))
+                      ,$Html$Attributes.hidden(_U.cmp($Game.levelMax,model.level) < 1)
+                      ,A2($Html$Events.onClick,address,NextLevel)]),
               _U.list([$Html.text("Next level")]))
               ,A2($Game.view,A2($Signal.forwardTo,address,GameAction),model.game)]));
    });
