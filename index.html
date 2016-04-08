@@ -10279,11 +10279,11 @@ Elm.StartApp.Simple.make = function (_elm) {
    };
    var Config = F3(function (a,b,c) {    return {model: a,view: b,update: c};});
    return _elm.StartApp.Simple.values = {_op: _op,Config: Config,start: start};
-};Elm.Main = Elm.Main || {};
-Elm.Main.make = function (_elm) {
+};Elm.Game = Elm.Game || {};
+Elm.Game.make = function (_elm) {
    "use strict";
-   _elm.Main = _elm.Main || {};
-   if (_elm.Main.values) return _elm.Main.values;
+   _elm.Game = _elm.Game || {};
+   if (_elm.Game.values) return _elm.Game.values;
    var _U = Elm.Native.Utils.make(_elm),
    $Array = Elm.Array.make(_elm),
    $Basics = Elm.Basics.make(_elm),
@@ -10302,11 +10302,10 @@ Elm.Main.make = function (_elm) {
    var DragStart = function (a) {    return {ctor: "DragStart",_0: a};};
    var NoOp = {ctor: "NoOp"};
    var italic = {ctor: "_Tuple2",_0: "font-style",_1: "italic"};
-   var boxHeight = {ctor: "_Tuple2",_0: "height",_1: "30px"};
+   var fixedHeight = {ctor: "_Tuple2",_0: "height",_1: "30px"};
    var redBorder = {ctor: "_Tuple2",_0: "border",_1: "2px solid red"};
    var grayBackground = {ctor: "_Tuple2",_0: "background-color",_1: "gray"};
    var smallPadding = {ctor: "_Tuple2",_0: "padding",_1: "2px"};
-   var bigMargin = {ctor: "_Tuple2",_0: "margin",_1: "10px 0"};
    var smallMargin = {ctor: "_Tuple2",_0: "margin",_1: "4px 0"};
    var addPar = function (f) {
       var _p0 = f;
@@ -10324,15 +10323,23 @@ Elm.Main.make = function (_elm) {
             return A2($Basics._op["++"],addPar(_p1._0),A2($Basics._op["++"]," ⇒ ",addPar(_p1._1)));
          }
    };
-   var Model = F3(function (a,b,c) {    return {context: a,selected: b,message: c};});
+   var Model = F4(function (a,b,c,d) {    return {context: a,selected: b,message: c,finished: d};});
    var Impl = F2(function (a,b) {    return {ctor: "Impl",_0: a,_1: b};});
    var Var = function (a) {    return {ctor: "Var",_0: a};};
-   var initModel = {context: $Array.fromList(_U.list([A2(Impl,Var("A"),Var("B"))
-                                                     ,A2(Impl,Var("A"),A2(Impl,Var("C"),Var("D")))
-                                                     ,Var("A")
-                                                     ,A2(Impl,Var("B"),Var("C"))]))
-                   ,selected: $Maybe.Nothing
-                   ,message: "Try moving A on A ⇒ B."};
+   var levels = function (index) {
+      var d = Var("D");
+      var c = Var("C");
+      var b = Var("B");
+      var a = Var("A");
+      return _U.eq(index,0) ? _U.list([A2(Impl,a,b),A2(Impl,a,A2(Impl,c,d)),a,A2(Impl,b,c)]) : _U.list([A2(Impl,a,b)
+                                                                                                       ,A2(Impl,c,b)
+                                                                                                       ,A2(Impl,c,d)
+                                                                                                       ,b
+                                                                                                       ,A2(Impl,A2(Impl,a,b),A2(Impl,b,c))]);
+   };
+   var init = function (level) {
+      return {context: $Array.fromList(levels(level)),selected: $Maybe.Nothing,message: _U.eq(level,0) ? "Try moving A on A ⇒ B." : "",finished: false};
+   };
    var update = F2(function (action,model) {
       var _p2 = action;
       switch (_p2.ctor)
@@ -10347,9 +10354,11 @@ Elm.Main.make = function (_elm) {
                     return _p4;
                  }
            }();
+           var finished = _U.eq(updatedFormula,Var("D"));
            return {context: A3($Array.set,_p2._0._0,updatedFormula,model.context)
                   ,selected: $Maybe.Nothing
-                  ,message: _U.eq(updatedFormula,Var("D")) ? "You win!" : ""};}
+                  ,message: finished ? "You win!" : ""
+                  ,finished: finished};}
    });
    var onDragOver = F2(function (addr,msg) {
       return A4($Html$Events.onWithOptions,
@@ -10367,7 +10376,7 @@ Elm.Main.make = function (_elm) {
    var onDrop = messageOn("drop");
    var viewFormula = F3(function (address,index,formula) {
       return A2($Html.div,
-      _U.list([$Html$Attributes.style(_U.list([smallMargin,smallPadding,boxHeight]))]),
+      _U.list([$Html$Attributes.style(_U.list([smallMargin,smallPadding,fixedHeight]))]),
       _U.list([A2($Html.span,
       _U.list([$Html$Attributes.draggable("true")
               ,A2(onDragStart,address,DragStart({ctor: "_Tuple2",_0: index,_1: formula}))
@@ -10380,10 +10389,79 @@ Elm.Main.make = function (_elm) {
       return A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "margin",_1: "10px"}]))]),
       _U.list([A2($Html.div,_U.list([]),$Array.toList(A2($Array.indexedMap,viewFormula(address),model.context)))
-              ,A2($Html.div,_U.list([$Html$Attributes.style(_U.list([bigMargin]))]),_U.list([$Html.text("The goal is to get D.")]))
-              ,A2($Html.div,_U.list([$Html$Attributes.style(_U.list([bigMargin,italic]))]),_U.list([$Html.text(model.message)]))]));
+              ,A2($Html.div,_U.list([$Html$Attributes.style(_U.list([smallMargin,fixedHeight]))]),_U.list([$Html.text("The goal is to get D.")]))
+              ,A2($Html.div,_U.list([$Html$Attributes.style(_U.list([fixedHeight,italic]))]),_U.list([$Html.text(model.message)]))]));
    });
    var singleton = function (x) {    return _U.list([x]);};
-   var main = $StartApp$Simple.start({model: initModel,view: view,update: update});
+   var main = $StartApp$Simple.start({model: init(0),view: view,update: update});
+   return _elm.Game.values = {_op: _op
+                             ,main: main
+                             ,singleton: singleton
+                             ,messageOn: messageOn
+                             ,onDragStart: onDragStart
+                             ,onDragOver: onDragOver
+                             ,onDrop: onDrop
+                             ,Var: Var
+                             ,Impl: Impl
+                             ,levels: levels
+                             ,Model: Model
+                             ,init: init
+                             ,addPar: addPar
+                             ,formulaToString: formulaToString
+                             ,smallMargin: smallMargin
+                             ,smallPadding: smallPadding
+                             ,grayBackground: grayBackground
+                             ,redBorder: redBorder
+                             ,fixedHeight: fixedHeight
+                             ,italic: italic
+                             ,viewFormula: viewFormula
+                             ,view: view
+                             ,NoOp: NoOp
+                             ,DragStart: DragStart
+                             ,Drop: Drop
+                             ,update: update};
+};Elm.Main = Elm.Main || {};
+Elm.Main.make = function (_elm) {
+   "use strict";
+   _elm.Main = _elm.Main || {};
+   if (_elm.Main.values) return _elm.Main.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Game = Elm.Game.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $Html$Events = Elm.Html.Events.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $StartApp$Simple = Elm.StartApp.Simple.make(_elm);
+   var _op = {};
+   var NextLevel = {ctor: "NextLevel"};
+   var Restart = {ctor: "Restart"};
+   var GameAction = function (a) {    return {ctor: "GameAction",_0: a};};
+   var NoOp = {ctor: "NoOp"};
+   var view = F2(function (address,model) {
+      return A2($Html.div,
+      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "margin",_1: "10px"}]))]),
+      _U.list([A2($Html.button,_U.list([A2($Html$Events.onClick,address,Restart)]),_U.list([$Html.text("Restart")]))
+              ,A2($Html.button,
+              _U.list([$Html$Attributes.disabled($Basics.not(model.nextActive)),A2($Html$Events.onClick,address,NextLevel)]),
+              _U.list([$Html.text("Next level")]))
+              ,A2($Game.view,A2($Signal.forwardTo,address,GameAction),model.game)]));
+   });
+   var init = function (index) {    return {game: $Game.init(index),nextActive: false,level: index};};
+   var update = F2(function (action,model) {
+      var _p0 = action;
+      switch (_p0.ctor)
+      {case "NoOp": return model;
+         case "GameAction": var game = A2($Game.update,_p0._0,model.game);
+           return _U.update(model,{game: game,nextActive: game.finished});
+         case "Restart": return init(model.level);
+         default: return init(model.level + 1);}
+   });
+   var Model = F3(function (a,b,c) {    return {game: a,nextActive: b,level: c};});
+   var main = $StartApp$Simple.start({model: init(0),view: view,update: update});
    return _elm.Main.values = {_op: _op,main: main};
 };</script></head><body><script type="text/javascript">Elm.fullscreen(Elm.Main)</script></body></html>
