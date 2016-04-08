@@ -24,7 +24,7 @@ import StartApp.Simple as StartApp
 {-| Run the game. -}
 main : Signal Html
 main =
-  StartApp.start { model = initModel, view = view, update = update }
+  StartApp.start { model = init 0, view = view, update = update }
 
 
 {- # UTILS -}
@@ -67,6 +67,30 @@ type Formula
   | Impl Formula Formula
 
 
+levels : Int -> List Formula
+levels index =
+  let
+    a = Var "A"
+    b = Var "B"
+    c = Var "C"
+    d = Var "D"
+  in
+  if index == 0 then
+    [ Impl a b
+    , Impl a (Impl c d)
+    , a
+    , Impl b c
+    ]
+
+  else
+    [ Impl a b
+    , Impl c b
+    , Impl c d
+    , b
+    , Impl (Impl a b) (Impl b c)
+    ]
+
+
 type alias Model =
   { context : Array Formula
   , selected : Maybe Formula
@@ -75,16 +99,13 @@ type alias Model =
   }
 
 
-initModel : Model
-initModel =
+init : Int -> Model
+init level =
   { context =
-    [ Impl (Var "A") (Var "B")
-    , Impl (Var "A") (Impl (Var "C") (Var "D"))
-    , Var "A"
-    , Impl (Var "B") (Var "C")
-    ] |> Array.fromList
+      Array.fromList <| levels level
   , selected = Nothing
-  , message = "Try moving A on A ⇒ B."
+  , message =
+      if level == 0 then "Try moving A on A ⇒ B." else ""
   , finished = False
   }
 

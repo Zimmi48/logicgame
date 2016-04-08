@@ -25,7 +25,7 @@ import StartApp.Simple as StartApp
 {-| Run the game. -}
 main : Signal Html
 main =
-  StartApp.start { model = initModel, view = view, update = update }
+  StartApp.start { model = init 0, view = view, update = update }
 
 
 {- # MODEL -}
@@ -34,13 +34,15 @@ main =
 type alias Model =
   { game : Game.Model
   , nextActive : Bool
+  , level : Int
   }
 
 
-initModel : Model
-initModel =
-  { game = Game.initModel
+init : Int -> Model
+init index =
+  { game = Game.init index
   , nextActive = False
+  , level = index
   }
 
 
@@ -52,9 +54,12 @@ view address model =
   div
     [ style [("margin" , "10px")]
     ]
-    [ Game.view (Signal.forwardTo address GameAction) model.game
-    , button [ onClick address Restart ] [ text "Restart" ]
-    , button [ disabled (not model.nextActive) ] [ text "Next level" ]
+    [ button [ onClick address Restart ] [ text "Restart" ]
+    , button
+        [ disabled (not model.nextActive)
+        , onClick address NextLevel
+        ] [ text "Next level" ]
+    , Game.view (Signal.forwardTo address GameAction) model.game
     ]
 
 
@@ -65,6 +70,7 @@ type Action
   = NoOp
   | GameAction Game.Action
   | Restart
+  | NextLevel
 
 
 update : Action -> Model -> Model
@@ -77,10 +83,14 @@ update action model =
       let
         game = Game.update action model.game
       in
-        { game = game
+        { model |
+          game = game
         , nextActive = game.finished
         }
 
     Restart ->
-      initModel
+      init model.level
+
+    NextLevel ->
+      init <| model.level + 1
 
