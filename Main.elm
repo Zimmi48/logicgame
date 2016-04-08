@@ -57,6 +57,7 @@ view address model =
     [ button [ onClick address Restart ] [ text "Restart" ]
     , button
         [ disabled (not model.nextActive)
+        , hidden (Game.levelMax <= model.level)
         , onClick address NextLevel
         ] [ text "Next level" ]
     , Game.view (Signal.forwardTo address GameAction) model.game

@@ -67,6 +67,9 @@ type Formula
   | Impl Formula Formula
 
 
+levelMax = 1
+
+
 levels : Int -> List Formula
 levels index =
   let
@@ -206,7 +209,8 @@ update action model =
 
             _ -> formula
 
-        finished = updatedFormula == Var "D"
+        -- if the game was already finished it stays finished
+        finished = model.finished || updatedFormula == Var "D"
       in
           { context = Array.set index updatedFormula model.context
           , selected = Nothing
