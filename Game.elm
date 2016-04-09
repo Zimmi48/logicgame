@@ -43,9 +43,9 @@ messageOn name addr msg =
   on name Json.value (\_ -> Signal.message addr msg)
 -}
 
-onDragOver : Signal.Address a -> a -> Attribute
-onDragOver addr msg =
-  onWithOptions "dragover" {preventDefault = True, stopPropagation = False} (Json.Decode.succeed ()) (\_ -> Signal.message addr msg)
+onDragOver : Bool -> Signal.Address a -> a -> Attribute
+onDragOver dropOk addr msg =
+  onWithOptions "dragover" {preventDefault = dropOk, stopPropagation = False} (Json.Decode.succeed ()) (\_ -> Signal.message addr msg)
 
 
 onDrop : Signal.Address a -> a -> Attribute
@@ -82,6 +82,31 @@ type Formula
   = Var String
   | Impl Formula Formula
 
+
+combine : Formula -> Maybe Formula -> Maybe Formula
+combine f jf' =
+  case (f , jf') of
+    (Impl f1 f2 , Just (Impl f1' f2' as f')) ->
+      if f1 == f' then
+        Just f2
+      else if f1' == f then
+        Just f2'
+      else
+        Nothing
+
+    (Impl f1 f2 , Just f') ->
+      if f1 == f' then
+        Just f2
+      else
+        Nothing
+
+    (_ , Just (Impl f1' f2')) ->
+      if f1' == f then
+        Just f2'
+      else
+        Nothing
+
+    _ -> Nothing
 
 levelMax = 1
 
@@ -158,8 +183,23 @@ fixedHeight = ("height" , "30px")
 italic = ("font-style" , "italic")
 
 
-viewFormula : Signal.Address Action -> Int -> Formula -> Html
-viewFormula address index formula =
+viewFormula : Signal.Address Action -> Maybe Formula -> Int -> Formula -> Html
+viewFormula address selected index formula =
+  let
+    combined = combine formula selected
+
+    dropOk = combined /= Nothing
+
+    dropAction =
+      case combined of
+        Just f ->
+          Drop (index , f)
+
+        Nothing ->
+          NoOp
+
+  in
+
   div
     [ style
         [ smallMargin
@@ -170,8 +210,8 @@ viewFormula address index formula =
     [ span
       [ draggable "true"
       , onDragStart address <| DragStart (index , formula)
-      , onDragOver address NoOp
-      , onDrop address <| Drop (index , formula)
+      , onDragOver dropOk address NoOp
+      , onDrop address dropAction
       , style
           [ grayBackground
           , redBorder
@@ -187,7 +227,8 @@ view address model =
   div
     [ style [("margin" , "10px")]
     ]
-    [ div [] (Array.toList <| Array.indexedMap (viewFormula address) model.context)
+    [ div []
+        (Array.toList <| Array.indexedMap (viewFormula address model.selected) model.context)
     , div [ style  [ smallMargin , fixedHeight ] ] [ text "The goal is to get D." ]
     , div
         [ style  [ fixedHeight , italic ] ]
@@ -213,25 +254,14 @@ update action model =
     DragStart (index, formula) ->
       { model | selected = Just formula }
 
-    Drop (index, formula) ->
+    Drop (index, updatedFormula) ->
       let
-        updatedFormula =
-          case (formula , model.selected) of
-            (Impl f1 f2 , Just f3) ->
-              if f1 == f3 then
-                f2
-              else
-                formula
-
-            _ -> formula
-
         -- if the game was already finished it stays finished
         finished = model.finished || updatedFormula == Var "D"
       in
-          { context = Array.set index updatedFormula model.context
-          , selected = Nothing
-          , message =
-              if finished then "You win!" else ""
-          , finished = finished
-          }
+      { context = Array.set index updatedFormula model.context
+      , selected = Nothing
+      , message = if finished then "You win!" else ""
+      , finished = finished
+      }
 
