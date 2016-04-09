@@ -10,11 +10,12 @@ Copyright Théo Zimmermann 2016. License MPL 2.0
 -}
 
 
+import Maybe exposing (andThen)
+import Array exposing (Array)
 import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
 import Json.Decode
-import Array exposing (Array)
 import StartApp.Simple as StartApp
 import Native.DragDrop
 
@@ -37,11 +38,6 @@ singleton x = [x]
 
 {- ## Custom events -}
 
-{-
-messageOn : String -> Signal.Address a -> a -> Attribute
-messageOn name addr msg =
-  on name Json.value (\_ -> Signal.message addr msg)
--}
 
 onDragOver : Bool -> Signal.Address a -> a -> Attribute
 onDragOver dropOk addr msg =
@@ -57,20 +53,6 @@ onDragStart : Signal.Address a -> a -> Attribute
 onDragStart addr msg =
   Native.DragDrop.onDragStart {preventDefault = False, stopPropagation = False} (Json.Decode.succeed ()) (\_ -> Signal.message addr msg)
 
-{-
-onDragStart = messageOn "dragstart"
-
-
-onDragOver addr msg =
-  onWithOptions
-    "dragover"
-    { preventDefault = True, stopPropagation = False}
-    Json.value
-    (\_ -> Signal.message addr msg)
-
-
-onDrop = messageOn "drop"
--}
 
 {- # MODEL -}
 
@@ -83,10 +65,10 @@ type Formula
   | Impl Formula Formula
 
 
-combine : Formula -> Maybe Formula -> Maybe Formula
-combine f jf' =
-  case (f , jf') of
-    (Impl f1 f2 , Just (Impl f1' f2' as f')) ->
+combine : Formula -> Formula -> Maybe Formula
+combine f f' =
+  case (f , f') of
+    (Impl f1 f2 , Impl f1' f2') ->
       if f1 == f' then
         Just f2
       else if f1' == f then
@@ -94,19 +76,20 @@ combine f jf' =
       else
         Nothing
 
-    (Impl f1 f2 , Just f') ->
+    (Impl f1 f2 , _) ->
       if f1 == f' then
         Just f2
       else
         Nothing
 
-    (_ , Just (Impl f1' f2')) ->
+    (_ , Impl f1' f2') ->
       if f1' == f then
         Just f2'
       else
         Nothing
 
     _ -> Nothing
+
 
 levelMax = 1
 
@@ -166,6 +149,7 @@ addPar f =
     _ ->
       "(" ++ formulaToString f ++ ")"
 
+
 formulaToString : Formula -> String
 formulaToString f =
   case f of
@@ -174,6 +158,7 @@ formulaToString f =
 
     Impl f1 f2 ->
        addPar f1 ++ " ⇒ " ++ addPar f2
+
 
 smallMargin = ("margin" , "4px 0")
 smallPadding = ("padding" , "2px")
@@ -186,7 +171,7 @@ italic = ("font-style" , "italic")
 viewFormula : Signal.Address Action -> Maybe Formula -> Int -> Formula -> Html
 viewFormula address selected index formula =
   let
-    combined = combine formula selected
+    combined = selected `andThen` combine formula
 
     dropOk = combined /= Nothing
 
