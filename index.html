@@ -10520,6 +10520,7 @@ Elm.Main.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm),
    $StartApp$Simple = Elm.StartApp.Simple.make(_elm);
    var _op = {};
+   var PreviousLevel = {ctor: "PreviousLevel"};
    var NextLevel = {ctor: "NextLevel"};
    var Restart = {ctor: "Restart"};
    var GameAction = function (a) {    return {ctor: "GameAction",_0: a};};
@@ -10529,23 +10530,28 @@ Elm.Main.make = function (_elm) {
       _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "margin",_1: "10px"}]))]),
       _U.list([A2($Html.button,_U.list([A2($Html$Events.onClick,address,Restart)]),_U.list([$Html.text("Restart")]))
               ,A2($Html.button,
-              _U.list([$Html$Attributes.disabled($Basics.not(model.nextActive))
+              _U.list([$Html$Attributes.hidden(_U.eq(model.level,0)),A2($Html$Events.onClick,address,PreviousLevel)]),
+              _U.list([$Html.text("Previous level")]))
+              ,A2($Html.button,
+              _U.list([$Html$Attributes.disabled(_U.cmp(model.maxUnlocked,model.level) < 1)
                       ,$Html$Attributes.hidden(_U.cmp($Game.levelMax,model.level) < 1)
                       ,A2($Html$Events.onClick,address,NextLevel)]),
               _U.list([$Html.text("Next level")]))
               ,A2($Game.view,A2($Signal.forwardTo,address,GameAction),model.game)]));
    });
-   var init = function (index) {    return {game: $Game.init(index),nextActive: false,level: index};};
+   var init = F2(function (index,model) {    return _U.update(model,{game: $Game.init(index),level: index});});
    var update = F2(function (action,model) {
       var _p0 = action;
       switch (_p0.ctor)
       {case "NoOp": return model;
          case "GameAction": var game = A2($Game.update,_p0._0,model.game);
-           return _U.update(model,{game: game,nextActive: game.finished});
-         case "Restart": return init(model.level);
-         default: return init(model.level + 1);}
+           return _U.update(model,{game: game,maxUnlocked: game.finished ? A2($Basics.max,model.maxUnlocked,model.level + 1) : model.maxUnlocked});
+         case "Restart": return A2(init,model.level,model);
+         case "NextLevel": return A2(init,model.level + 1,model);
+         default: return A2(init,model.level - 1,model);}
    });
-   var Model = F3(function (a,b,c) {    return {game: a,nextActive: b,level: c};});
-   var main = $StartApp$Simple.start({model: init(0),view: view,update: update});
+   var initModel = {game: $Game.init(0),maxUnlocked: 0,level: 0};
+   var Model = F3(function (a,b,c) {    return {game: a,maxUnlocked: b,level: c};});
+   var main = $StartApp$Simple.start({model: initModel,view: view,update: update});
    return _elm.Main.values = {_op: _op,main: main};
 };</script></head><body><script type="text/javascript">Elm.fullscreen(Elm.Main)</script></body></html>
