@@ -10,13 +10,13 @@ Copyright Théo Zimmermann 2016. License MPL 2.0
 -}
 
 
-import Game
 import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
 import Json.Decode as Json
 import Array exposing (Array)
 import StartApp.Simple as StartApp
+import Game
 
 
 {- # MAIN -}
@@ -25,7 +25,7 @@ import StartApp.Simple as StartApp
 {-| Run the game. -}
 main : Signal Html
 main =
-  StartApp.start { model = init 0, view = view, update = update }
+  StartApp.start { model = initModel, view = view, update = update }
 
 
 {- # MODEL -}
@@ -33,15 +33,23 @@ main =
 
 type alias Model =
   { game : Game.Model
-  , nextActive : Bool
+  , maxUnlocked : Int
   , level : Int
   }
 
 
-init : Int -> Model
-init index =
-  { game = Game.init index
-  , nextActive = False
+initModel : Model
+initModel =
+  { game = Game.init 0
+  , maxUnlocked = 0
+  , level = 0
+  }
+
+
+init : Int -> Model -> Model
+init index model =
+  { model |
+    game = Game.init index
   , level = index
   }
 
@@ -56,7 +64,11 @@ view address model =
     ]
     [ button [ onClick address Restart ] [ text "Restart" ]
     , button
-        [ disabled (not model.nextActive)
+        [ hidden (model.level == 0)
+        , onClick address PreviousLevel
+        ] [ text "Previous level" ]
+    , button
+        [ disabled (model.maxUnlocked <= model.level)
         , hidden (Game.levelMax <= model.level)
         , onClick address NextLevel
         ] [ text "Next level" ]
@@ -72,6 +84,7 @@ type Action
   | GameAction Game.Action
   | Restart
   | NextLevel
+  | PreviousLevel
 
 
 update : Action -> Model -> Model
@@ -86,12 +99,19 @@ update action model =
       in
         { model |
           game = game
-        , nextActive = game.finished
+        , maxUnlocked =
+            if game.finished then
+              Basics.max model.maxUnlocked <| model.level + 1
+            else
+              model.maxUnlocked
         }
 
     Restart ->
-      init model.level
+      init model.level model
 
     NextLevel ->
-      init <| model.level + 1
+      init (model.level + 1) model
+
+    PreviousLevel ->
+      init (model.level - 1) model
 
