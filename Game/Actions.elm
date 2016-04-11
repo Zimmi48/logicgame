@@ -1,10 +1,9 @@
 module Game.Actions (..) where
 
 
-import Game.Formula exposing (Formula)
+import Game.Formula as Formula exposing (Formula)
 
 
 type Action
   = NoOp
-  | DragStart (Int, Formula)
-  | Drop (Int, Formula)
+  | FormulaAction Int Formula Formula.Action

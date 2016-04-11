@@ -2,20 +2,18 @@ module Game.Update (update) where
 
 
 import Array
+import Game.Formula as Formula exposing (Action(..))
 import Game.Actions exposing (..)
 import Game.Model exposing (Model)
 
 
-update : Action -> Model -> Model
+update : Game.Actions.Action -> Model -> Model
 update action model =
   case action of
-    NoOp ->
-      model
-
-    DragStart (index, formula) ->
+    FormulaAction _ formula Selected ->
       { model | selected = Just formula }
 
-    Drop (index, updatedFormula) ->
+    FormulaAction index _ (Result updatedFormula) ->
       let
         -- if the game was already finished it stays finished
         finished = model.finished || updatedFormula == model.goal
@@ -26,3 +24,6 @@ update action model =
       , message = if finished then "You win!" else ""
       , finished = finished
       }
+
+    _ ->
+      model

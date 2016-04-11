@@ -1,8 +1,17 @@
-module Game.Formula (Formula(..), combine, toString) where
+module Game.Formula (Formula(..), toString, view, Action(..)) where
+
+
+import Maybe exposing (andThen)
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import DragDrop exposing (..)
+import Style exposing (..)
 
 
 -- Propositional calculus to start with
 
+
+{-| # Model -}
 
 type Formula
   = Var String
@@ -36,6 +45,9 @@ combine f f' =
     _ -> Nothing
 
 
+{-| # View -}
+
+
 addPar : Formula -> String
 addPar f =
   case f of
@@ -54,3 +66,52 @@ toString f =
 
     Impl f1 f2 ->
        addPar f1 ++ " ⇒ " ++ addPar f2
+
+
+view : Maybe Formula -> Signal.Address Action -> Formula -> Html
+view selected address formula =
+  let
+    combined = selected `andThen` combine formula
+
+    dropOk = combined /= Nothing
+
+    dropAction =
+      case combined of
+        Just f ->
+          Result f
+
+        Nothing ->
+          NoOp
+
+  in
+
+  div
+    [ style
+        [ smallMargin
+        , smallPadding
+        , fixedHeight
+        ]
+    ]
+    [ span
+      [ draggable "true"
+      , onDragStart address Selected
+      , onDragOver dropOk address NoOp
+      , onDrop address dropAction
+      , style
+          [ grayBackground
+          , redBorder
+          , smallPadding
+          ]
+      ]
+      [ text <| toString formula ]
+    ]
+
+
+{-| # Actions -}
+
+
+type Action
+  = NoOp
+  | Selected
+  | Result Formula
+
