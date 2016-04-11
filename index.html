@@ -5397,6 +5397,83 @@ Elm.Signal.make = function (_elm) {
                                ,message: message
                                ,forwardTo: forwardTo
                                ,Mailbox: Mailbox};
+};Elm.Game = Elm.Game || {};
+Elm.Game.Formula = Elm.Game.Formula || {};
+Elm.Game.Formula.make = function (_elm) {
+   "use strict";
+   _elm.Game = _elm.Game || {};
+   _elm.Game.Formula = _elm.Game.Formula || {};
+   if (_elm.Game.Formula.values) return _elm.Game.Formula.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var addPar = function (f) {
+      var _p0 = f;
+      if (_p0.ctor === "Var") {
+            return _p0._0;
+         } else {
+            return A2($Basics._op["++"],"(",A2($Basics._op["++"],toString(f),")"));
+         }
+   };
+   var toString = function (f) {
+      var _p1 = f;
+      if (_p1.ctor === "Var") {
+            return _p1._0;
+         } else {
+            return A2($Basics._op["++"],addPar(_p1._0),A2($Basics._op["++"]," ⇒ ",addPar(_p1._1)));
+         }
+   };
+   var combine = F2(function (f,f$) {
+      var _p2 = {ctor: "_Tuple2",_0: f,_1: f$};
+      _v2_3: do {
+         if (_p2.ctor === "_Tuple2") {
+               if (_p2._0.ctor === "Impl") {
+                     if (_p2._1.ctor === "Impl") {
+                           return _U.eq(_p2._0._0,f$) ? $Maybe.Just(_p2._0._1) : _U.eq(_p2._1._0,f) ? $Maybe.Just(_p2._1._1) : $Maybe.Nothing;
+                        } else {
+                           return _U.eq(_p2._0._0,f$) ? $Maybe.Just(_p2._0._1) : $Maybe.Nothing;
+                        }
+                  } else {
+                     if (_p2._1.ctor === "Impl") {
+                           return _U.eq(_p2._1._0,f) ? $Maybe.Just(_p2._1._1) : $Maybe.Nothing;
+                        } else {
+                           break _v2_3;
+                        }
+                  }
+            } else {
+               break _v2_3;
+            }
+      } while (false);
+      return $Maybe.Nothing;
+   });
+   var Impl = F2(function (a,b) {    return {ctor: "Impl",_0: a,_1: b};});
+   var Var = function (a) {    return {ctor: "Var",_0: a};};
+   return _elm.Game.Formula.values = {_op: _op,combine: combine,toString: toString,Var: Var,Impl: Impl};
+};Elm.Game = Elm.Game || {};
+Elm.Game.Actions = Elm.Game.Actions || {};
+Elm.Game.Actions.make = function (_elm) {
+   "use strict";
+   _elm.Game = _elm.Game || {};
+   _elm.Game.Actions = _elm.Game.Actions || {};
+   if (_elm.Game.Actions.values) return _elm.Game.Actions.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Game$Formula = Elm.Game.Formula.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var Drop = function (a) {    return {ctor: "Drop",_0: a};};
+   var DragStart = function (a) {    return {ctor: "DragStart",_0: a};};
+   var NoOp = {ctor: "NoOp"};
+   return _elm.Game.Actions.values = {_op: _op,NoOp: NoOp,DragStart: DragStart,Drop: Drop};
 };Elm.Native.Array = {};
 Elm.Native.Array.make = function(localRuntime) {
 
@@ -6436,6 +6513,76 @@ Elm.Array.make = function (_elm) {
                               ,filter: filter
                               ,foldl: foldl
                               ,foldr: foldr};
+};Elm.Game = Elm.Game || {};
+Elm.Game.Model = Elm.Game.Model || {};
+Elm.Game.Model.make = function (_elm) {
+   "use strict";
+   _elm.Game = _elm.Game || {};
+   _elm.Game.Model = _elm.Game.Model || {};
+   if (_elm.Game.Model.values) return _elm.Game.Model.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Array = Elm.Array.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Game$Formula = Elm.Game.Formula.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var Model = F5(function (a,b,c,d,e) {    return {context: a,goal: b,selected: c,message: d,finished: e};});
+   var levels = function (index) {
+      var d = $Game$Formula.Var("D");
+      var c = $Game$Formula.Var("C");
+      var b = $Game$Formula.Var("B");
+      var a = $Game$Formula.Var("A");
+      return _U.eq(index,0) ? _U.list([A2($Game$Formula.Impl,a,b)
+                                      ,A2($Game$Formula.Impl,a,A2($Game$Formula.Impl,c,d))
+                                      ,a
+                                      ,A2($Game$Formula.Impl,b,c)]) : _U.list([A2($Game$Formula.Impl,a,b)
+                                                                              ,A2($Game$Formula.Impl,c,b)
+                                                                              ,A2($Game$Formula.Impl,c,d)
+                                                                              ,b
+                                                                              ,A2($Game$Formula.Impl,A2($Game$Formula.Impl,a,b),A2($Game$Formula.Impl,b,c))]);
+   };
+   var init = function (level) {
+      return {context: $Array.fromList(levels(level))
+             ,goal: $Game$Formula.Var("D")
+             ,selected: $Maybe.Nothing
+             ,message: _U.eq(level,0) ? "Try moving A on A ⇒ B." : ""
+             ,finished: false};
+   };
+   var levelMax = 1;
+   return _elm.Game.Model.values = {_op: _op,levelMax: levelMax,init: init,Model: Model};
+};Elm.Game = Elm.Game || {};
+Elm.Game.Update = Elm.Game.Update || {};
+Elm.Game.Update.make = function (_elm) {
+   "use strict";
+   _elm.Game = _elm.Game || {};
+   _elm.Game.Update = _elm.Game.Update || {};
+   if (_elm.Game.Update.values) return _elm.Game.Update.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Array = Elm.Array.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Game$Actions = Elm.Game.Actions.make(_elm),
+   $Game$Model = Elm.Game.Model.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var update = F2(function (action,model) {
+      var _p0 = action;
+      switch (_p0.ctor)
+      {case "NoOp": return model;
+         case "DragStart": return _U.update(model,{selected: $Maybe.Just(_p0._0._1)});
+         default: var _p1 = _p0._0._1;
+           var finished = model.finished || _U.eq(_p1,model.goal);
+           return _U.update(model,
+           {context: A3($Array.set,_p0._0._0,_p1,model.context),selected: $Maybe.Nothing,message: finished ? "You win!" : "",finished: finished});}
+   });
+   return _elm.Game.Update.values = {_op: _op,update: update};
 };Elm.Native.Json = {};
 
 Elm.Native.Json.make = function(localRuntime) {
@@ -10247,38 +10394,6 @@ Elm.Html.Attributes.make = function (_elm) {
                                         ,manifest: manifest
                                         ,property: property
                                         ,attribute: attribute};
-};Elm.StartApp = Elm.StartApp || {};
-Elm.StartApp.Simple = Elm.StartApp.Simple || {};
-Elm.StartApp.Simple.make = function (_elm) {
-   "use strict";
-   _elm.StartApp = _elm.StartApp || {};
-   _elm.StartApp.Simple = _elm.StartApp.Simple || {};
-   if (_elm.StartApp.Simple.values) return _elm.StartApp.Simple.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $Html = Elm.Html.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var _op = {};
-   var start = function (config) {
-      var update = F2(function (maybeAction,model) {
-         var _p0 = maybeAction;
-         if (_p0.ctor === "Just") {
-               return A2(config.update,_p0._0,model);
-            } else {
-               return _U.crashCase("StartApp.Simple",{start: {line: 91,column: 7},end: {line: 96,column: 52}},_p0)("This should never happen.");
-            }
-      });
-      var actions = $Signal.mailbox($Maybe.Nothing);
-      var address = A2($Signal.forwardTo,actions.address,$Maybe.Just);
-      var model = A3($Signal.foldp,update,config.model,actions.signal);
-      return A2($Signal.map,config.view(address),model);
-   };
-   var Config = F3(function (a,b,c) {    return {model: a,view: b,update: c};});
-   return _elm.StartApp.Simple.values = {_op: _op,Config: Config,start: start};
 };Elm.Native.DragDrop = {};
 
 Elm.Native.DragDrop.make = function(localRuntime) {
@@ -10331,14 +10446,19 @@ Elm.Native.DragDrop.make = function(localRuntime) {
   };
 };
 Elm.Game = Elm.Game || {};
-Elm.Game.make = function (_elm) {
+Elm.Game.View = Elm.Game.View || {};
+Elm.Game.View.make = function (_elm) {
    "use strict";
    _elm.Game = _elm.Game || {};
-   if (_elm.Game.values) return _elm.Game.values;
+   _elm.Game.View = _elm.Game.View || {};
+   if (_elm.Game.View.values) return _elm.Game.View.values;
    var _U = Elm.Native.Utils.make(_elm),
    $Array = Elm.Array.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Debug = Elm.Debug.make(_elm),
+   $Game$Actions = Elm.Game.Actions.make(_elm),
+   $Game$Formula = Elm.Game.Formula.make(_elm),
+   $Game$Model = Elm.Game.Model.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
    $Html$Events = Elm.Html.Events.make(_elm),
@@ -10347,124 +10467,54 @@ Elm.Game.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Native$DragDrop = Elm.Native.DragDrop.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $StartApp$Simple = Elm.StartApp.Simple.make(_elm);
+   $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var Drop = function (a) {    return {ctor: "Drop",_0: a};};
-   var DragStart = function (a) {    return {ctor: "DragStart",_0: a};};
-   var NoOp = {ctor: "NoOp"};
    var italic = {ctor: "_Tuple2",_0: "font-style",_1: "italic"};
    var fixedHeight = {ctor: "_Tuple2",_0: "height",_1: "30px"};
    var redBorder = {ctor: "_Tuple2",_0: "border",_1: "2px solid red"};
    var grayBackground = {ctor: "_Tuple2",_0: "background-color",_1: "gray"};
    var smallPadding = {ctor: "_Tuple2",_0: "padding",_1: "2px"};
    var smallMargin = {ctor: "_Tuple2",_0: "margin",_1: "4px 0"};
-   var addPar = function (f) {
-      var _p0 = f;
-      if (_p0.ctor === "Var") {
-            return _p0._0;
-         } else {
-            return A2($Basics._op["++"],"(",A2($Basics._op["++"],formulaToString(f),")"));
-         }
-   };
-   var formulaToString = function (f) {
-      var _p1 = f;
-      if (_p1.ctor === "Var") {
-            return _p1._0;
-         } else {
-            return A2($Basics._op["++"],addPar(_p1._0),A2($Basics._op["++"]," ⇒ ",addPar(_p1._1)));
-         }
-   };
-   var Model = F4(function (a,b,c,d) {    return {context: a,selected: b,message: c,finished: d};});
-   var levelMax = 1;
-   var combine = F2(function (f,f$) {
-      var _p2 = {ctor: "_Tuple2",_0: f,_1: f$};
-      _v2_3: do {
-         if (_p2.ctor === "_Tuple2") {
-               if (_p2._0.ctor === "Impl") {
-                     if (_p2._1.ctor === "Impl") {
-                           return _U.eq(_p2._0._0,f$) ? $Maybe.Just(_p2._0._1) : _U.eq(_p2._1._0,f) ? $Maybe.Just(_p2._1._1) : $Maybe.Nothing;
-                        } else {
-                           return _U.eq(_p2._0._0,f$) ? $Maybe.Just(_p2._0._1) : $Maybe.Nothing;
-                        }
-                  } else {
-                     if (_p2._1.ctor === "Impl") {
-                           return _U.eq(_p2._1._0,f) ? $Maybe.Just(_p2._1._1) : $Maybe.Nothing;
-                        } else {
-                           break _v2_3;
-                        }
-                  }
-            } else {
-               break _v2_3;
-            }
-      } while (false);
-      return $Maybe.Nothing;
-   });
-   var Impl = F2(function (a,b) {    return {ctor: "Impl",_0: a,_1: b};});
-   var Var = function (a) {    return {ctor: "Var",_0: a};};
-   var levels = function (index) {
-      var d = Var("D");
-      var c = Var("C");
-      var b = Var("B");
-      var a = Var("A");
-      return _U.eq(index,0) ? _U.list([A2(Impl,a,b),A2(Impl,a,A2(Impl,c,d)),a,A2(Impl,b,c)]) : _U.list([A2(Impl,a,b)
-                                                                                                       ,A2(Impl,c,b)
-                                                                                                       ,A2(Impl,c,d)
-                                                                                                       ,b
-                                                                                                       ,A2(Impl,A2(Impl,a,b),A2(Impl,b,c))]);
-   };
-   var init = function (level) {
-      return {context: $Array.fromList(levels(level)),selected: $Maybe.Nothing,message: _U.eq(level,0) ? "Try moving A on A ⇒ B." : "",finished: false};
-   };
-   var update = F2(function (action,model) {
-      var _p3 = action;
-      switch (_p3.ctor)
-      {case "NoOp": return model;
-         case "DragStart": return _U.update(model,{selected: $Maybe.Just(_p3._0._1)});
-         default: var _p4 = _p3._0._1;
-           var finished = model.finished || _U.eq(_p4,Var("D"));
-           return {context: A3($Array.set,_p3._0._0,_p4,model.context),selected: $Maybe.Nothing,message: finished ? "You win!" : "",finished: finished};}
-   });
    var onDragStart = F2(function (addr,msg) {
       return A3($Native$DragDrop.onDragStart,
       {preventDefault: false,stopPropagation: false},
       $Json$Decode.succeed({ctor: "_Tuple0"}),
-      function (_p5) {
+      function (_p0) {
          return A2($Signal.message,addr,msg);
       });
    });
    var onDrop = F2(function (addr,msg) {
-      return A3($Html$Events.on,"drop",$Json$Decode.succeed({ctor: "_Tuple0"}),function (_p6) {    return A2($Signal.message,addr,msg);});
+      return A3($Html$Events.on,"drop",$Json$Decode.succeed({ctor: "_Tuple0"}),function (_p1) {    return A2($Signal.message,addr,msg);});
    });
    var onDragOver = F3(function (dropOk,addr,msg) {
       return A4($Html$Events.onWithOptions,
       "dragover",
       {preventDefault: dropOk,stopPropagation: false},
       $Json$Decode.succeed({ctor: "_Tuple0"}),
-      function (_p7) {
+      function (_p2) {
          return A2($Signal.message,addr,msg);
       });
    });
    var viewFormula = F4(function (address,selected,index,formula) {
-      var combined = A2($Maybe.andThen,selected,combine(formula));
+      var combined = A2($Maybe.andThen,selected,$Game$Formula.combine(formula));
       var dropOk = !_U.eq(combined,$Maybe.Nothing);
       var dropAction = function () {
-         var _p8 = combined;
-         if (_p8.ctor === "Just") {
-               return Drop({ctor: "_Tuple2",_0: index,_1: _p8._0});
+         var _p3 = combined;
+         if (_p3.ctor === "Just") {
+               return $Game$Actions.Drop({ctor: "_Tuple2",_0: index,_1: _p3._0});
             } else {
-               return NoOp;
+               return $Game$Actions.NoOp;
             }
       }();
       return A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([smallMargin,smallPadding,fixedHeight]))]),
       _U.list([A2($Html.span,
       _U.list([$Html$Attributes.draggable("true")
-              ,A2(onDragStart,address,DragStart({ctor: "_Tuple2",_0: index,_1: formula}))
-              ,A3(onDragOver,dropOk,address,NoOp)
+              ,A2(onDragStart,address,$Game$Actions.DragStart({ctor: "_Tuple2",_0: index,_1: formula}))
+              ,A3(onDragOver,dropOk,address,$Game$Actions.NoOp)
               ,A2(onDrop,address,dropAction)
               ,$Html$Attributes.style(_U.list([grayBackground,redBorder,smallPadding]))]),
-      _U.list([$Html.text(formulaToString(formula))]))]));
+      _U.list([$Html.text($Game$Formula.toString(formula))]))]));
    });
    var view = F2(function (address,model) {
       return A2($Html.div,
@@ -10473,35 +10523,39 @@ Elm.Game.make = function (_elm) {
               ,A2($Html.div,_U.list([$Html$Attributes.style(_U.list([smallMargin,fixedHeight]))]),_U.list([$Html.text("The goal is to get D.")]))
               ,A2($Html.div,_U.list([$Html$Attributes.style(_U.list([fixedHeight,italic]))]),_U.list([$Html.text(model.message)]))]));
    });
-   var singleton = function (x) {    return _U.list([x]);};
-   var main = $StartApp$Simple.start({model: init(0),view: view,update: update});
-   return _elm.Game.values = {_op: _op
-                             ,main: main
-                             ,singleton: singleton
-                             ,onDragOver: onDragOver
-                             ,onDrop: onDrop
-                             ,onDragStart: onDragStart
-                             ,Var: Var
-                             ,Impl: Impl
-                             ,combine: combine
-                             ,levelMax: levelMax
-                             ,levels: levels
-                             ,Model: Model
-                             ,init: init
-                             ,addPar: addPar
-                             ,formulaToString: formulaToString
-                             ,smallMargin: smallMargin
-                             ,smallPadding: smallPadding
-                             ,grayBackground: grayBackground
-                             ,redBorder: redBorder
-                             ,fixedHeight: fixedHeight
-                             ,italic: italic
-                             ,viewFormula: viewFormula
-                             ,view: view
-                             ,NoOp: NoOp
-                             ,DragStart: DragStart
-                             ,Drop: Drop
-                             ,update: update};
+   return _elm.Game.View.values = {_op: _op,view: view};
+};Elm.StartApp = Elm.StartApp || {};
+Elm.StartApp.Simple = Elm.StartApp.Simple || {};
+Elm.StartApp.Simple.make = function (_elm) {
+   "use strict";
+   _elm.StartApp = _elm.StartApp || {};
+   _elm.StartApp.Simple = _elm.StartApp.Simple || {};
+   if (_elm.StartApp.Simple.values) return _elm.StartApp.Simple.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var start = function (config) {
+      var update = F2(function (maybeAction,model) {
+         var _p0 = maybeAction;
+         if (_p0.ctor === "Just") {
+               return A2(config.update,_p0._0,model);
+            } else {
+               return _U.crashCase("StartApp.Simple",{start: {line: 91,column: 7},end: {line: 96,column: 52}},_p0)("This should never happen.");
+            }
+      });
+      var actions = $Signal.mailbox($Maybe.Nothing);
+      var address = A2($Signal.forwardTo,actions.address,$Maybe.Just);
+      var model = A3($Signal.foldp,update,config.model,actions.signal);
+      return A2($Signal.map,config.view(address),model);
+   };
+   var Config = F3(function (a,b,c) {    return {model: a,view: b,update: c};});
+   return _elm.StartApp.Simple.values = {_op: _op,Config: Config,start: start};
 };Elm.Main = Elm.Main || {};
 Elm.Main.make = function (_elm) {
    "use strict";
@@ -10510,7 +10564,10 @@ Elm.Main.make = function (_elm) {
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Debug = Elm.Debug.make(_elm),
-   $Game = Elm.Game.make(_elm),
+   $Game$Actions = Elm.Game.Actions.make(_elm),
+   $Game$Model = Elm.Game.Model.make(_elm),
+   $Game$Update = Elm.Game.Update.make(_elm),
+   $Game$View = Elm.Game.View.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
    $Html$Events = Elm.Html.Events.make(_elm),
@@ -10534,23 +10591,23 @@ Elm.Main.make = function (_elm) {
               _U.list([$Html.text("Previous level")]))
               ,A2($Html.button,
               _U.list([$Html$Attributes.disabled(_U.cmp(model.maxUnlocked,model.level) < 1)
-                      ,$Html$Attributes.hidden(_U.cmp($Game.levelMax,model.level) < 1)
+                      ,$Html$Attributes.hidden(_U.cmp($Game$Model.levelMax,model.level) < 1)
                       ,A2($Html$Events.onClick,address,NextLevel)]),
               _U.list([$Html.text("Next level")]))
-              ,A2($Game.view,A2($Signal.forwardTo,address,GameAction),model.game)]));
+              ,A2($Game$View.view,A2($Signal.forwardTo,address,GameAction),model.game)]));
    });
-   var init = F2(function (index,model) {    return _U.update(model,{game: $Game.init(index),level: index});});
+   var init = F2(function (index,model) {    return _U.update(model,{game: $Game$Model.init(index),level: index});});
    var update = F2(function (action,model) {
       var _p0 = action;
       switch (_p0.ctor)
       {case "NoOp": return model;
-         case "GameAction": var game = A2($Game.update,_p0._0,model.game);
+         case "GameAction": var game = A2($Game$Update.update,_p0._0,model.game);
            return _U.update(model,{game: game,maxUnlocked: game.finished ? A2($Basics.max,model.maxUnlocked,model.level + 1) : model.maxUnlocked});
          case "Restart": return A2(init,model.level,model);
          case "NextLevel": return A2(init,model.level + 1,model);
          default: return A2(init,model.level - 1,model);}
    });
-   var initModel = {game: $Game.init(0),maxUnlocked: 0,level: 0};
+   var initModel = {game: $Game$Model.init(0),maxUnlocked: 0,level: 0};
    var Model = F3(function (a,b,c) {    return {game: a,maxUnlocked: b,level: c};});
    var main = $StartApp$Simple.start({model: initModel,view: view,update: update});
    return _elm.Main.values = {_op: _op,main: main};
