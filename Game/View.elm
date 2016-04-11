@@ -4,35 +4,12 @@ module Game.View (view) where
 import Maybe exposing (andThen)
 import Array
 import Html exposing (..)
-import Html.Events exposing (..)
 import Html.Attributes exposing (..)
-import Json.Decode
-import Native.DragDrop
+import DragDrop exposing (..)
 import Game.Actions exposing (..)
 import Game.Model exposing (Model)
 import Game.Formula as Formula exposing (Formula)
 import Game.Context exposing (Context)
-
-
-{- ## Custom events -}
-
-
-onDragOver : Bool -> Signal.Address a -> a -> Attribute
-onDragOver dropOk addr msg =
-  onWithOptions "dragover" {preventDefault = dropOk, stopPropagation = False} (Json.Decode.succeed ()) (\_ -> Signal.message addr msg)
-
-
-onDrop : Signal.Address a -> a -> Attribute
-onDrop addr msg =
-  on "drop" (Json.Decode.succeed ()) (\_ -> Signal.message addr msg)
-
-
-onDragStart : Signal.Address a -> a -> Attribute
-onDragStart addr msg =
-  Native.DragDrop.onDragStart {preventDefault = False, stopPropagation = False} (Json.Decode.succeed ()) (\_ -> Signal.message addr msg)
-
-
-{- # VIEW -}
 
 
 smallMargin = ("margin" , "4px 0")
