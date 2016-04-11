@@ -1,3 +1,5 @@
+/* Code derived from  */
+
 Elm.Native.DragDrop = {};
 
 Elm.Native.DragDrop.make = function(localRuntime) {
