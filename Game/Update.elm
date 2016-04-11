@@ -21,7 +21,7 @@ update action model =
         finished = model.finished || updatedFormula == model.goal
       in
       { model |
-        context = Array.set index updatedFormula model.context
+        mainContext = Array.set index updatedFormula model.mainContext
       , selected = Nothing
       , message = if finished then "You win!" else ""
       , finished = finished
