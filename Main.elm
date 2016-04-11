@@ -16,7 +16,10 @@ import Html.Attributes exposing (..)
 import Json.Decode as Json
 import Array exposing (Array)
 import StartApp.Simple as StartApp
-import Game
+import Game.View
+import Game.Update
+import Game.Model exposing (levelMax)
+import Game.Actions
 
 
 {- # MAIN -}
@@ -32,7 +35,7 @@ main =
 
 
 type alias Model =
-  { game : Game.Model
+  { game : Game.Model.Model
   , maxUnlocked : Int
   , level : Int
   }
@@ -40,7 +43,7 @@ type alias Model =
 
 initModel : Model
 initModel =
-  { game = Game.init 0
+  { game = Game.Model.init 0
   , maxUnlocked = 0
   , level = 0
   }
@@ -49,7 +52,7 @@ initModel =
 init : Int -> Model -> Model
 init index model =
   { model |
-    game = Game.init index
+    game = Game.Model.init index
   , level = index
   }
 
@@ -69,10 +72,10 @@ view address model =
         ] [ text "Previous level" ]
     , button
         [ disabled (model.maxUnlocked <= model.level)
-        , hidden (Game.levelMax <= model.level)
+        , hidden (levelMax <= model.level)
         , onClick address NextLevel
         ] [ text "Next level" ]
-    , Game.view (Signal.forwardTo address GameAction) model.game
+    , Game.View.view (Signal.forwardTo address GameAction) model.game
     ]
 
 
@@ -81,7 +84,7 @@ view address model =
 
 type Action
   = NoOp
-  | GameAction Game.Action
+  | GameAction Game.Actions.Action
   | Restart
   | NextLevel
   | PreviousLevel
@@ -95,7 +98,7 @@ update action model =
 
     GameAction action ->
       let
-        game = Game.update action model.game
+        game = Game.Update.update action model.game
       in
         { model |
           game = game
