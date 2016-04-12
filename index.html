@@ -10104,7 +10104,7 @@ Elm.DragDrop.make = function (_elm) {
    var onDrop = F2(function (addr,msg) {
       return A4($Html$Events.onWithOptions,
       "drop",
-      {preventDefault: false,stopPropagation: false},
+      {preventDefault: false,stopPropagation: true},
       $Json$Decode.succeed({ctor: "_Tuple0"}),
       function (_p1) {
          return A2($Signal.message,addr,msg);
@@ -10113,7 +10113,7 @@ Elm.DragDrop.make = function (_elm) {
    var onDragOver = F3(function (dropOk,addr,msg) {
       return A4($Html$Events.onWithOptions,
       "dragover",
-      {preventDefault: dropOk,stopPropagation: false},
+      {preventDefault: dropOk,stopPropagation: true},
       $Json$Decode.succeed({ctor: "_Tuple0"}),
       function (_p2) {
          return A2($Signal.message,addr,msg);
