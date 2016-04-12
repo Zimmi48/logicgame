@@ -84,7 +84,7 @@ viewMainContext selectionContext selected address context =
   div
     dropAttributes
     [ Context.view
-        selected
+        (if selectionContext == Nothing then selected else Nothing)
         (Signal.forwardTo address MainContextAction)
         context
     ]
