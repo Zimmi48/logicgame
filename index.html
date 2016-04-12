@@ -10673,7 +10673,12 @@ Elm.Game.View.make = function (_elm) {
                return _U.list([]);
             }
       }();
-      return A2($Html.div,dropAttributes,_U.list([A3($Game$Context.view,selected,A2($Signal.forwardTo,address,$Game$Actions.MainContextAction),context)]));
+      return A2($Html.div,
+      dropAttributes,
+      _U.list([A3($Game$Context.view,
+      _U.eq(selectionContext,$Maybe.Nothing) ? selected : $Maybe.Nothing,
+      A2($Signal.forwardTo,address,$Game$Actions.MainContextAction),
+      context)]));
    });
    var viewContext = F5(function (selectionContext,selected,address,index,context) {
       var selected = function () {
