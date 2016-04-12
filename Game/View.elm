@@ -9,10 +9,10 @@ import Style exposing (..)
 import Game.Actions exposing (..)
 import Game.Model exposing (Model)
 import Game.Formula as Formula exposing (Formula)
-import Game.Context exposing (Context)
+import Game.Context as Context exposing (Context)
 
 
-viewContext : Maybe Formula -> Signal.Address Action -> Context -> Html
+viewContext : Maybe Formula -> Signal.Address Action -> Context Formula -> Html
 viewContext selected address context =
   div
     [ style
@@ -22,7 +22,7 @@ viewContext selected address context =
         ]
     ]
     [ div [] [ text <| "Assume: " ++ Formula.toString context.hypothesis ]
-    , div [] []
+    , Context.view selected (Signal.forwardTo address <| always NoOp) context
     ]
 
 view : Signal.Address Action -> Model -> Html
@@ -30,17 +30,10 @@ view address model =
   div
     [ style [("margin" , "10px")]
     ] <|
-    [ div []
-        ( Array.toList <|
-          Array.indexedMap
-            (\index formula ->
-                Formula.view
-                  model.selected
-                  (Signal.forwardTo address <| FormulaAction index formula)
-                  formula
-            )
-            model.mainContext
-        )
+    [ Context.view
+        model.selected
+        (Signal.forwardTo address ContextAction)
+        model.mainContext
     ] ++
     List.map (viewContext model.selected address) model.contexts ++
     [ div

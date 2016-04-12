@@ -1,9 +1,9 @@
 module Game.Actions (..) where
 
 
-import Game.Formula as Formula exposing (Formula)
+import Game.Context as Context
 
 
 type Action
   = NoOp
-  | FormulaAction Int Formula Formula.Action
+  | ContextAction Context.Action
