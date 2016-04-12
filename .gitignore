@@ -1,0 +1,10 @@
+
+# Ignore auto-generated files
+elm.js
+elm-stuff/
+
+# Ignore all hidden files
+.*
+
+# Except .gitignore itself
+!.gitignore
