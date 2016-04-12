@@ -12,8 +12,23 @@ import Game.Formula as Formula exposing (Formula)
 import Game.Context as Context exposing (Context)
 
 
-viewContext : Maybe Formula -> Signal.Address Action -> Context Formula -> Html
-viewContext selected address context =
+viewContext : Maybe Formula -> Maybe Formula -> Signal.Address Action -> Int -> Context Formula -> Html
+viewContext selectionContext selected address index context =
+  let
+    selected =
+      case selectionContext of
+        Nothing ->
+          selected
+
+        Just hypothesis ->
+          if hypothesis == context.hypothesis then
+            selected
+
+          else
+            Nothing
+
+  in
+
   div
     [ style
         [ greenBorder
@@ -22,7 +37,10 @@ viewContext selected address context =
         ]
     ]
     [ div [] [ text <| "Assume: " ++ Formula.toString context.hypothesis ]
-    , Context.view selected (Signal.forwardTo address <| always NoOp) context
+    , Context.view
+        selected
+        (Signal.forwardTo address <| ContextAction index context.hypothesis)
+        context
     ]
 
 view : Signal.Address Action -> Model -> Html
@@ -32,10 +50,14 @@ view address model =
     ] <|
     [ Context.view
         model.selected
-        (Signal.forwardTo address ContextAction)
+        (Signal.forwardTo address MainContextAction)
         model.mainContext
     ] ++
-    List.map (viewContext model.selected address) model.contexts ++
+    Array.toList
+      (Array.indexedMap
+        (viewContext model.selectionContext model.selected address)
+        model.contexts
+      ) ++
     [ div
         [ style  [ smallMargin , fixedHeight ] ]
         [ text <| "The goal is to get " ++ Formula.toString model.goal ++ "." ]

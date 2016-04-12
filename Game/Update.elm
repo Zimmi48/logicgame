@@ -11,10 +11,10 @@ import Game.Model exposing (Model)
 update : Game.Actions.Action -> Model -> Model
 update action model =
   case action of
-    ContextAction (FormulaAction _ formula Selected) ->
+    MainContextAction (FormulaAction _ formula Selected) ->
       { model | selected = Just formula }
 
-    ContextAction (FormulaAction index _ (Result updatedFormula) as action) ->
+    MainContextAction (FormulaAction _ _ (Result updatedFormula) as action) ->
       let
         -- if the game was already finished it stays finished
         finished = model.finished || updatedFormula == model.goal
@@ -24,6 +24,20 @@ update action model =
       , selected = Nothing
       , message = if finished then "You win!" else ""
       , finished = finished
+      }
+
+    ContextAction _ hypothesis (FormulaAction _ formula Selected) ->
+      { model |
+        selected = Just formula
+      , selectionContext = Just hypothesis
+      }
+
+    ContextAction index _ action ->
+      { model |
+        contexts =
+          Array.indexedMap
+            (\i c -> if i == index then Context.update action c else c)
+            model.contexts
       }
 
     _ ->

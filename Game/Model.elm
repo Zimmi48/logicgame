@@ -1,6 +1,7 @@
 module Game.Model (levelMax, Model, init) where
 
 
+import Array exposing (Array)
 import Game.Formula exposing (Formula(..))
 import Game.Context as Context exposing (Context)
 
@@ -10,11 +11,23 @@ levelMax = 2
 
 type alias Model =
   { mainContext : Context ()
-  , contexts : List (Context Formula)
+  , contexts : Array (Context Formula)
   , goal : Formula
   , message : String
   , selected : Maybe Formula
+  , selectionContext : Maybe Formula
   , finished : Bool
+  }
+
+
+getAModel { mainContext , contexts , message } =
+  { mainContext = mainContext
+  , contexts = Array.fromList contexts
+  , goal = Var "D"
+  , message = message
+  , selected = Nothing
+  , selectionContext = Nothing
+  , finished = False
   }
 
 
@@ -36,11 +49,8 @@ init level =
           , Impl b c
           ]
     , contexts = []
-    , goal = Var "D"
     , message = "Try moving A on A ⇒ B."
-    , selected = Nothing
-    , finished = False
-    }
+    } |> getAModel
 
   else if level == 1 then
     { mainContext =
@@ -52,11 +62,8 @@ init level =
           , Impl (Impl a b) (Impl b c)
           ]
     , contexts = []
-    , goal = Var "D"
     , message = ""
-    , selected = Nothing
-    , finished = False
-    }
+    } |> getAModel
 
   else
     { mainContext =
@@ -67,8 +74,5 @@ init level =
           , Impl a d
           ]
     , contexts = [ Context.empty a ]
-    , goal = Var "D"
     , message = "You can drag and drop any formula into the green context. Some will just be copied, others will be transformed."
-    , selected = Nothing
-    , finished = False
-    }
+    } |> getAModel

@@ -1,9 +1,11 @@
 module Game.Actions (..) where
 
 
+import Game.Formula exposing (Formula)
 import Game.Context as Context
 
 
 type Action
   = NoOp
-  | ContextAction Context.Action
+  | MainContextAction Context.Action
+  | ContextAction Int Formula Context.Action
