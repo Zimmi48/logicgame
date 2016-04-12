@@ -15,7 +15,7 @@ onDragOver : Bool -> Signal.Address a -> a -> Attribute
 onDragOver dropOk addr msg =
   onWithOptions
     "dragover"
-    {preventDefault = dropOk, stopPropagation = False}
+    {preventDefault = dropOk, stopPropagation = True}
     (Json.Decode.succeed ())
     (\_ -> Signal.message addr msg)
 
@@ -24,7 +24,7 @@ onDrop : Signal.Address a -> a -> Attribute
 onDrop addr msg =
   onWithOptions
     "drop"
-    {preventDefault = False, stopPropagation = False}
+    {preventDefault = False, stopPropagation = True}
     (Json.Decode.succeed ())
     (\_ -> Signal.message addr msg)
 
