@@ -10630,8 +10630,6 @@ Elm.Game.Update.make = function (_elm) {
                  } else {
                     return _U.update(model,
                     {contexts: A2($Array.indexedMap,F2(function (i,c) {    return _U.eq(i,_p0._0) ? A2($Game$Context.update,_p0._2,c) : c;}),model.contexts)
-                    ,selected: $Maybe.Nothing
-                    ,selectionContext: $Maybe.Nothing
                     ,message: model.finished ? model.message : ""});
                  }
             default: break _v0_5;}
@@ -10805,7 +10803,7 @@ Elm.Main.make = function (_elm) {
          case "NextLevel": return A2(init,model.level + 1,model);
          default: return A2(init,model.level - 1,model);}
    });
-   var initModel = {game: $Game$Model.init(2),maxUnlocked: 0,level: 0};
+   var initModel = {game: $Game$Model.init(0),maxUnlocked: 0,level: 0};
    var Model = F3(function (a,b,c) {    return {game: a,maxUnlocked: b,level: c};});
    var main = $StartApp$Simple.start({model: initModel,view: view,update: update});
    return _elm.Main.values = {_op: _op,main: main};
