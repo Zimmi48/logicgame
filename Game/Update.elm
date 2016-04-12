@@ -12,7 +12,10 @@ update : Game.Actions.Action -> Model -> Model
 update action model =
   case action of
     MainContextAction (FormulaAction _ formula Selected) ->
-      { model | selected = Just formula }
+      { model |
+        selected = Just formula
+      , selectionContext = Nothing
+      }
 
     MainContextAction (FormulaAction _ _ (Result updatedFormula) as action) ->
       let
@@ -22,6 +25,20 @@ update action model =
       { model |
         mainContext = Context.update action model.mainContext
       , selected = Nothing
+      , selectionContext = Nothing
+      , message = if finished then "You win!" else ""
+      , finished = finished
+      }
+
+    MainContextAction (AddFormula formula as action) ->
+      let
+        -- if the game was already finished it stays finished
+        finished = model.finished || formula == model.goal
+      in
+      { model |
+        mainContext = Context.update action model.mainContext
+      , selected = Nothing
+      , selectionContext = Nothing
       , message = if finished then "You win!" else ""
       , finished = finished
       }
@@ -38,6 +55,9 @@ update action model =
           Array.indexedMap
             (\i c -> if i == index then Context.update action c else c)
             model.contexts
+      , selected = Nothing
+      , selectionContext = Nothing
+      , message = if model.finished then model.message else ""
       }
 
     _ ->

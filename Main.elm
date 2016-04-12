@@ -44,7 +44,7 @@ type alias Model =
 
 initModel : Model
 initModel =
-  { game = Game.Model.init 0
+  { game = Game.Model.init 2
   , maxUnlocked = 0
   , level = 0
   }

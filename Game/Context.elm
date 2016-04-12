@@ -52,6 +52,7 @@ view selected address context =
 type Action
   = NoOp
   | FormulaAction Int Formula Formula.Action
+  | AddFormula Formula
 
 
 update : Action -> Context a -> Context a
@@ -61,6 +62,11 @@ update action context =
     FormulaAction index _ (Result updatedFormula) ->
       { context |
         formulas = Array.set index updatedFormula context.formulas
+      }
+
+    AddFormula formula ->
+      { context |
+        formulas = Array.push formula context.formulas
       }
 
     _ ->

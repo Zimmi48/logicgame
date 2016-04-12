@@ -8,7 +8,7 @@ import DragDrop exposing (..)
 import Style exposing (..)
 import Game.Actions exposing (..)
 import Game.Model exposing (Model)
-import Game.Formula as Formula exposing (Formula)
+import Game.Formula as Formula exposing (Formula(..))
 import Game.Context as Context exposing (Context)
 
 
@@ -27,15 +27,37 @@ viewContext selectionContext selected address index context =
           else
             Nothing
 
+    dropAttributes =
+      case (selectionContext , selected) of
+        (Nothing , Just formula) ->
+          let
+            resultOfMove =
+              case formula of
+                Impl f1 f2 ->
+                  if f1 == context.hypothesis then f2 else formula
+
+                _ ->
+                  formula
+
+          in
+
+          [ onDragOver True address NoOp
+          , onDrop
+              address
+              (ContextAction index context.hypothesis <| Context.AddFormula resultOfMove)
+          ]
+
+        _ ->
+          []
   in
 
   div
-    [ style
+    ([ style
         [ greenBorder
         , smallPadding
         , bigBottomPadding
         ]
-    ]
+    ] ++ dropAttributes )
     [ div [] [ text <| "Assume: " ++ Formula.toString context.hypothesis ]
     , Context.view
         selected
@@ -43,15 +65,37 @@ viewContext selectionContext selected address index context =
         context
     ]
 
+
+viewMainContext : Maybe Formula -> Maybe Formula -> Signal.Address Action -> Context () -> Html
+viewMainContext selectionContext selected address context =
+  let
+    dropAttributes =
+      case (selectionContext , selected) of
+        (Just f1 , Just f2) ->
+          [ onDragOver True address NoOp
+          , onDrop address (MainContextAction <| Context.AddFormula (Impl f1 f2))
+          ]
+
+        _ ->
+          []
+
+  in
+
+  div
+    dropAttributes
+    [ Context.view
+        selected
+        (Signal.forwardTo address MainContextAction)
+        context
+    ]
+
+
 view : Signal.Address Action -> Model -> Html
 view address model =
   div
     [ style [("margin" , "10px")]
     ] <|
-    [ Context.view
-        model.selected
-        (Signal.forwardTo address MainContextAction)
-        model.mainContext
+    [ viewMainContext model.selectionContext model.selected address model.mainContext
     ] ++
     Array.toList
       (Array.indexedMap
