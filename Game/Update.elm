@@ -55,8 +55,6 @@ update action model =
           Array.indexedMap
             (\i c -> if i == index then Context.update action c else c)
             model.contexts
-      , selected = Nothing
-      , selectionContext = Nothing
       , message = if model.finished then model.message else ""
       }
 
