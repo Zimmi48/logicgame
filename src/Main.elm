@@ -32,6 +32,10 @@ main =
   StartApp.start { model = initModel, view = view, update = update }
 
 
+port title : String
+port title = "A simple logic game"
+
+
 {- # MODEL -}
 
 
