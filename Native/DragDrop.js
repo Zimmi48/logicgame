@@ -1,4 +1,4 @@
-/* Code derived from  */
+/* Code derived from  https://github.com/kurtharriger/elm-battleship */
 
 Elm.Native.DragDrop = {};
 
