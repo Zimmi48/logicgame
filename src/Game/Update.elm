@@ -2,11 +2,26 @@ module Game.Update (update) where
 
 
 import Array
-import Game.Formula as Formula exposing (Action(..))
+import Game.Formula as Formula exposing (Formula, Action(..))
 import Game.Context as Context exposing (Action(..))
 import Game.Actions exposing (..)
 import Game.Model exposing (Model)
 
+addFormulaToMainContext : Formula -> Context.Action -> Model -> Model
+addFormulaToMainContext formula action model =
+  let
+  -- if the game was already finished it stays finished
+    finished = model.finished || formula == model.goal
+
+  in
+
+  { model |
+    mainContext = Context.update action model.mainContext
+  , selected = Nothing
+  , selectionContext = Nothing
+  , message = if finished then "You win!" else ""
+  , finished = finished
+  }
 
 update : Game.Actions.Action -> Model -> Model
 update action model =
@@ -17,31 +32,11 @@ update action model =
       , selectionContext = Nothing
       }
 
-    MainContextAction (FormulaAction _ _ (Result updatedFormula) as action) ->
-      let
-        -- if the game was already finished it stays finished
-        finished = model.finished || updatedFormula == model.goal
-      in
-      { model |
-        mainContext = Context.update action model.mainContext
-      , selected = Nothing
-      , selectionContext = Nothing
-      , message = if finished then "You win!" else ""
-      , finished = finished
-      }
+    MainContextAction (FormulaAction _ _ (Result formula) as action) ->
+      addFormulaToMainContext formula action model
 
     MainContextAction (AddFormula formula as action) ->
-      let
-        -- if the game was already finished it stays finished
-        finished = model.finished || formula == model.goal
-      in
-      { model |
-        mainContext = Context.update action model.mainContext
-      , selected = Nothing
-      , selectionContext = Nothing
-      , message = if finished then "You win!" else ""
-      , finished = finished
-      }
+      addFormulaToMainContext formula action model
 
     ContextAction _ hypothesis (FormulaAction _ formula Selected) ->
       { model |
