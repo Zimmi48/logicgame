@@ -6,7 +6,7 @@ import Game.Formula exposing (Formula(..))
 import Game.Context as Context exposing (Context)
 
 
-levelMax = 2
+levelMax = 3
 
 
 type alias Model =
@@ -20,11 +20,18 @@ type alias Model =
   }
 
 
-getAModel { mainContext , contexts , message } =
-  { mainContext = mainContext
-  , contexts = Array.fromList contexts
-  , goal = Var "D"
-  , message = message
+a = Var "A"
+b = Var "B"
+c = Var "C"
+d = Var "D"
+
+
+defaultModel : Model
+defaultModel =
+  { mainContext = Context.fromList []
+  , contexts = Array.empty
+  , goal = d
+  , message = ""
   , selected = Nothing
   , selectionContext = Nothing
   , finished = False
@@ -33,27 +40,21 @@ getAModel { mainContext , contexts , message } =
 
 init : Int -> Model
 init level =
-  let
-    a = Var "A"
-    b = Var "B"
-    c = Var "C"
-    d = Var "D"
-  in
-
   if level == 0 then
-    { mainContext =
+    { defaultModel |
+      mainContext =
         Context.fromList
           [ Impl a b
           , Impl a (Impl c d)
           , a
           , Impl b c
           ]
-    , contexts = []
     , message = "Try moving A on A ⇒ B."
-    } |> getAModel
+    }
 
   else if level == 1 then
-    { mainContext =
+    { defaultModel |
+      mainContext =
         Context.fromList
           [ Impl a b
           , Impl c b
@@ -61,18 +62,30 @@ init level =
           , b
           , Impl (Impl a b) (Impl b c)
           ]
-    , contexts = []
-    , message = ""
-    } |> getAModel
+    }
 
-  else
-    { mainContext =
+  else if level == 2 then
+    { defaultModel |
+      mainContext =
         Context.fromList
           [ Impl a b
           , Impl (Impl a c) a
           , Impl b c
           , Impl a d
           ]
-    , contexts = [ Context.empty a ]
+    , contexts = Array.fromList [ Context.empty a ]
     , message = "You can drag and drop any formula into the green context. Some will just be copied, others will be transformed."
-    } |> getAModel
+    }
+
+  else
+    { defaultModel |
+      mainContext =
+        Context.fromList
+          [ Impl c d
+          , Impl d c
+          , Impl (Impl a c) (Impl (Impl b c) c)
+          , Impl a d
+          , Impl b a
+          ]
+    , contexts = Array.fromList [ Context.empty a , Context.empty b ]
+    }

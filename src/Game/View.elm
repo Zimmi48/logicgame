@@ -54,6 +54,7 @@ viewContext selectionContext selected address index context =
   div
     ([ style
         [ greenBorder
+        , smallMargin
         , smallPadding
         , bigBottomPadding
         ]
