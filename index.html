@@ -10545,42 +10545,45 @@ Elm.Game.Model.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var getAModel = function (_p0) {
-      var _p1 = _p0;
-      return {mainContext: _p1.mainContext
-             ,contexts: $Array.fromList(_p1.contexts)
-             ,goal: $Game$Formula.Var("D")
-             ,message: _p1.message
-             ,selected: $Maybe.Nothing
-             ,selectionContext: $Maybe.Nothing
-             ,finished: false};
-   };
+   var d = $Game$Formula.Var("D");
+   var defaultModel = {mainContext: $Game$Context.fromList(_U.list([]))
+                      ,contexts: $Array.empty
+                      ,goal: d
+                      ,message: ""
+                      ,selected: $Maybe.Nothing
+                      ,selectionContext: $Maybe.Nothing
+                      ,finished: false};
+   var c = $Game$Formula.Var("C");
+   var b = $Game$Formula.Var("B");
+   var a = $Game$Formula.Var("A");
    var init = function (level) {
-      var d = $Game$Formula.Var("D");
-      var c = $Game$Formula.Var("C");
-      var b = $Game$Formula.Var("B");
-      var a = $Game$Formula.Var("A");
-      return _U.eq(level,0) ? getAModel({mainContext: $Game$Context.fromList(_U.list([A2($Game$Formula.Impl,a,b)
-                                                                                     ,A2($Game$Formula.Impl,a,A2($Game$Formula.Impl,c,d))
-                                                                                     ,a
-                                                                                     ,A2($Game$Formula.Impl,b,c)]))
-                                        ,contexts: _U.list([])
-                                        ,message: "Try moving A on A ⇒ B."}) : _U.eq(level,
-      1) ? getAModel({mainContext: $Game$Context.fromList(_U.list([A2($Game$Formula.Impl,a,b)
-                                                                  ,A2($Game$Formula.Impl,c,b)
-                                                                  ,A2($Game$Formula.Impl,c,d)
-                                                                  ,b
-                                                                  ,A2($Game$Formula.Impl,A2($Game$Formula.Impl,a,b),A2($Game$Formula.Impl,b,c))]))
-                     ,contexts: _U.list([])
-                     ,message: ""}) : getAModel({mainContext: $Game$Context.fromList(_U.list([A2($Game$Formula.Impl,a,b)
-                                                                                             ,A2($Game$Formula.Impl,A2($Game$Formula.Impl,a,c),a)
-                                                                                             ,A2($Game$Formula.Impl,b,c)
-                                                                                             ,A2($Game$Formula.Impl,a,d)]))
-                                                ,contexts: _U.list([$Game$Context.empty(a)])
-                                                ,message: "You can drag and drop any formula into the green context. Some will just be copied, others will be transformed."});
+      return _U.eq(level,0) ? _U.update(defaultModel,
+      {mainContext: $Game$Context.fromList(_U.list([A2($Game$Formula.Impl,a,b)
+                                                   ,A2($Game$Formula.Impl,a,A2($Game$Formula.Impl,c,d))
+                                                   ,a
+                                                   ,A2($Game$Formula.Impl,b,c)]))
+      ,message: "Try moving A on A ⇒ B."}) : _U.eq(level,1) ? _U.update(defaultModel,
+      {mainContext: $Game$Context.fromList(_U.list([A2($Game$Formula.Impl,a,b)
+                                                   ,A2($Game$Formula.Impl,c,b)
+                                                   ,A2($Game$Formula.Impl,c,d)
+                                                   ,b
+                                                   ,A2($Game$Formula.Impl,A2($Game$Formula.Impl,a,b),A2($Game$Formula.Impl,b,c))]))}) : _U.eq(level,
+      2) ? _U.update(defaultModel,
+      {mainContext: $Game$Context.fromList(_U.list([A2($Game$Formula.Impl,a,b)
+                                                   ,A2($Game$Formula.Impl,A2($Game$Formula.Impl,a,c),a)
+                                                   ,A2($Game$Formula.Impl,b,c)
+                                                   ,A2($Game$Formula.Impl,a,d)]))
+      ,contexts: $Array.fromList(_U.list([$Game$Context.empty(a)]))
+      ,message: "You can drag and drop any formula into the green context. Some will just be copied, others will be transformed."}) : _U.update(defaultModel,
+      {mainContext: $Game$Context.fromList(_U.list([A2($Game$Formula.Impl,c,d)
+                                                   ,A2($Game$Formula.Impl,d,c)
+                                                   ,A2($Game$Formula.Impl,A2($Game$Formula.Impl,a,c),A2($Game$Formula.Impl,A2($Game$Formula.Impl,b,c),c))
+                                                   ,A2($Game$Formula.Impl,a,d)
+                                                   ,A2($Game$Formula.Impl,b,a)]))
+      ,contexts: $Array.fromList(_U.list([$Game$Context.empty(a),$Game$Context.empty(b)]))});
    };
    var Model = F7(function (a,b,c,d,e,f,g) {    return {mainContext: a,contexts: b,goal: c,message: d,selected: e,selectionContext: f,finished: g};});
-   var levelMax = 2;
+   var levelMax = 3;
    return _elm.Game.Model.values = {_op: _op,levelMax: levelMax,init: init,Model: Model};
 };Elm.Game = Elm.Game || {};
 Elm.Game.Update = Elm.Game.Update || {};
@@ -10602,6 +10605,15 @@ Elm.Game.Update.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
+   var addFormulaToMainContext = F3(function (formula,action,model) {
+      var finished = model.finished || _U.eq(formula,model.goal);
+      return _U.update(model,
+      {mainContext: A2($Game$Context.update,action,model.mainContext)
+      ,selected: $Maybe.Nothing
+      ,selectionContext: $Maybe.Nothing
+      ,message: finished ? "You win!" : ""
+      ,finished: finished});
+   });
    var update = F2(function (action,model) {
       var _p0 = action;
       _v0_5: do {
@@ -10609,21 +10621,9 @@ Elm.Game.Update.make = function (_elm) {
          {case "MainContextAction": switch (_p0._0.ctor)
               {case "FormulaAction": switch (_p0._0._2.ctor)
                    {case "Selected": return _U.update(model,{selected: $Maybe.Just(_p0._0._1),selectionContext: $Maybe.Nothing});
-                      case "Result": var finished = model.finished || _U.eq(_p0._0._2._0,model.goal);
-                        return _U.update(model,
-                        {mainContext: A2($Game$Context.update,_p0._0,model.mainContext)
-                        ,selected: $Maybe.Nothing
-                        ,selectionContext: $Maybe.Nothing
-                        ,message: finished ? "You win!" : ""
-                        ,finished: finished});
+                      case "Result": return A3(addFormulaToMainContext,_p0._0._2._0,_p0._0,model);
                       default: break _v0_5;}
-                 case "AddFormula": var finished = model.finished || _U.eq(_p0._0._0,model.goal);
-                   return _U.update(model,
-                   {mainContext: A2($Game$Context.update,_p0._0,model.mainContext)
-                   ,selected: $Maybe.Nothing
-                   ,selectionContext: $Maybe.Nothing
-                   ,message: finished ? "You win!" : ""
-                   ,finished: finished});
+                 case "AddFormula": return A3(addFormulaToMainContext,_p0._0._0,_p0._0,model);
                  default: break _v0_5;}
             case "ContextAction": if (_p0._2.ctor === "FormulaAction" && _p0._2._2.ctor === "Selected") {
                     return _U.update(model,{selected: $Maybe.Just(_p0._2._1),selectionContext: $Maybe.Just(_p0._1)});
@@ -10708,7 +10708,9 @@ Elm.Game.View.make = function (_elm) {
             }
       }();
       return A2($Html.div,
-      A2($Basics._op["++"],_U.list([$Html$Attributes.style(_U.list([$Style.greenBorder,$Style.smallPadding,$Style.bigBottomPadding]))]),dropAttributes),
+      A2($Basics._op["++"],
+      _U.list([$Html$Attributes.style(_U.list([$Style.greenBorder,$Style.smallMargin,$Style.smallPadding,$Style.bigBottomPadding]))]),
+      dropAttributes),
       _U.list([A2($Html.div,_U.list([]),_U.list([$Html.text(A2($Basics._op["++"],"Assume: ",$Game$Formula.toString(context.hypothesis)))]))
               ,A3($Game$Context.view,selected,A2($Signal.forwardTo,address,A2($Game$Actions.ContextAction,index,context.hypothesis)),context)]));
    });
