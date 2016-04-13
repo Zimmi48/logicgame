@@ -10810,6 +10810,7 @@ Elm.Main.make = function (_elm) {
    });
    var initModel = {game: $Game$Model.init(0),maxUnlocked: 0,level: 0};
    var Model = F3(function (a,b,c) {    return {game: a,maxUnlocked: b,level: c};});
+   var title = Elm.Native.Port.make(_elm).outbound("title",function (v) {    return v;},"A simple logic game");
    var main = $StartApp$Simple.start({model: initModel,view: view,update: update});
    return _elm.Main.values = {_op: _op,main: main};
 };</script></head><body><script type="text/javascript">Elm.fullscreen(Elm.Main)</script></body></html>
