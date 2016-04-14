@@ -1,7 +1,8 @@
-module Game.Model (levelMax, Model, init) where
+module Game.Model (levelMax, Model, init, hints) where
 
 
 import Array exposing (Array)
+import Time exposing (Time)
 import Game.Formula exposing (Formula(..))
 import Game.Context as Context exposing (Context)
 
@@ -13,11 +14,23 @@ type alias Model =
   { mainContext : Context ()
   , contexts : Array (Context Formula)
   , goal : Formula
+  , hints : Hints
   , message : String
   , selected : Maybe Formula
   , selectionContext : Maybe Formula
   , finished : Bool
   }
+
+
+type Hints = Hints (Time -> Model -> String)
+
+
+hintsOfHints : Hints -> Time -> Model -> String
+hintsOfHints (Hints hints) = hints
+
+
+hints : Time -> Model -> String
+hints time model = (hintsOfHints model.hints) time model
 
 
 a = Var "A"
@@ -31,6 +44,7 @@ defaultModel =
   { mainContext = Context.fromList []
   , contexts = Array.empty
   , goal = d
+  , hints = Hints (\_ _ -> "")
   , message = ""
   , selected = Nothing
   , selectionContext = Nothing
@@ -49,7 +63,7 @@ init level =
           , a
           , Impl b c
           ]
-    , message = "Try moving A on A ⇒ B."
+    , hints = Hints (\_ _ -> "Try moving A on A ⇒ B.")
     }
 
   else if level == 1 then
@@ -74,7 +88,11 @@ init level =
           , Impl a d
           ]
     , contexts = Array.fromList [ Context.empty a ]
-    , message = "You can drag and drop any formula into the green context. Some will just be copied, others will be transformed."
+    , hints =
+        Hints
+          (\_ _ ->
+              "You can drag and drop any formula into the green context. Some will just be copied, others will be transformed."
+          )
     }
 
   else

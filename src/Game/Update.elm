@@ -2,10 +2,11 @@ module Game.Update (update) where
 
 
 import Array
+import Time
 import Game.Formula as Formula exposing (Formula, Action(..))
 import Game.Context as Context exposing (Action(..))
 import Game.Actions exposing (..)
-import Game.Model exposing (Model)
+import Game.Model exposing (Model, hints)
 
 addFormulaToMainContext : Formula -> Context.Action -> Model -> Model
 addFormulaToMainContext formula action model =
@@ -50,7 +51,11 @@ update action model =
           Array.indexedMap
             (\i c -> if i == index then Context.update action c else c)
             model.contexts
-      , message = if model.finished then model.message else ""
+      }
+
+    Time time ->
+      { model |
+        message = hints time model
       }
 
     _ ->
