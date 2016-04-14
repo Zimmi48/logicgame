@@ -7,16 +7,14 @@ module Main (main) where
 
 Copyright Théo Zimmermann 2016. License MPL 2.0
 
-@docs main
 -}
 
 
 import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
-import Json.Decode as Json
-import Array exposing (Array)
-import StartApp.Simple as StartApp
+import Effects
+import StartApp
 import Game.View
 import Game.Update
 import Game.Model exposing (levelMax)
@@ -26,10 +24,15 @@ import Game.Actions
 {- # MAIN -}
 
 
-{-| Run the game. -}
 main : Signal Html
 main =
-  StartApp.start { model = initModel, view = view, update = update }
+  StartApp.start
+    { init = (initModel, Effects.none)
+    , view = view
+    , update = \a m -> (update a m , Effects.none)
+    , inputs = []
+    }
+  |> .html
 
 
 port title : String
