@@ -10072,8 +10072,36 @@ Elm.Native.DragDrop.make = function(localRuntime) {
 		return property('on' + name, eventHandler);
 	}
 
+  function onDragOver(options, decoder, createMessage)
+	{
+    var name = 'dragover';
+		function eventHandler(event)
+		{
+
+			var value = A2(Json.runDecoderValue, decoder, event);
+			if (value.ctor === 'Ok')
+			{
+				if (options.stopPropagation)
+				{
+					event.stopPropagation();
+				}
+				if (options.preventDefault)
+				{
+					event.preventDefault();
+				}
+                if (typeof(options.dropEffect) == "string")
+                {
+                    event.dataTransfer.dropEffect = options.dropEffect;
+                }
+				Signal.sendMessage(createMessage(value._0));
+			}
+		}
+		return property('on' + name, eventHandler);
+	}
+
   return localRuntime.Native.Json.values = {
-    onDragStart: F3(onDragStart)
+    onDragStart: F3(onDragStart),
+    onDragOver: F3(onDragOver)
   };
 };
 Elm.DragDrop = Elm.DragDrop || {};
@@ -10110,16 +10138,38 @@ Elm.DragDrop.make = function (_elm) {
          return A2($Signal.message,addr,msg);
       });
    });
-   var onDragOver = F3(function (dropOk,addr,msg) {
-      return A4($Html$Events.onWithOptions,
-      "dragover",
-      {preventDefault: dropOk,stopPropagation: true},
+   var toString = function (dropEffect) {
+      var _p2 = dropEffect;
+      switch (_p2.ctor)
+      {case "All": return "all";
+         case "Copy": return "copy";
+         case "Link": return "link";
+         case "Move": return "move";
+         default: return "none";}
+   };
+   var onDragOver = F3(function (dropEffect,addr,msg) {
+      return A3($Native$DragDrop.onDragOver,
+      {preventDefault: true,stopPropagation: true,dropEffect: toString(dropEffect)},
       $Json$Decode.succeed({ctor: "_Tuple0"}),
-      function (_p2) {
+      function (_p3) {
          return A2($Signal.message,addr,msg);
       });
    });
-   return _elm.DragDrop.values = {_op: _op,onDragOver: onDragOver,onDrop: onDrop,onDragStart: onDragStart};
+   var None = {ctor: "None"};
+   var Move = {ctor: "Move"};
+   var Link = {ctor: "Link"};
+   var Copy = {ctor: "Copy"};
+   var All = {ctor: "All"};
+   return _elm.DragDrop.values = {_op: _op
+                                 ,All: All
+                                 ,Copy: Copy
+                                 ,Link: Link
+                                 ,Move: Move
+                                 ,None: None
+                                 ,toString: toString
+                                 ,onDragOver: onDragOver
+                                 ,onDrop: onDrop
+                                 ,onDragStart: onDragStart};
 };Elm.Html = Elm.Html || {};
 Elm.Html.Attributes = Elm.Html.Attributes || {};
 Elm.Html.Attributes.make = function (_elm) {
@@ -10437,14 +10487,22 @@ Elm.Game.Formula.make = function (_elm) {
    });
    var view = F3(function (selected,address,formula) {
       var combined = A2($Maybe.andThen,selected,combine(formula));
-      var dropOk = !_U.eq(combined,$Maybe.Nothing);
-      var dropAction = function () {    var _p3 = combined;if (_p3.ctor === "Just") {    return Result(_p3._0);} else {    return NoOp;}}();
+      var _p3 = function () {
+         var _p4 = combined;
+         if (_p4.ctor === "Just") {
+               return {ctor: "_Tuple2",_0: Result(_p4._0),_1: $DragDrop.All};
+            } else {
+               return {ctor: "_Tuple2",_0: NoOp,_1: $DragDrop.None};
+            }
+      }();
+      var dropAction = _p3._0;
+      var dropEffect = _p3._1;
       return A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([$Style.smallMargin,$Style.smallPadding,$Style.fixedHeight]))]),
       _U.list([A2($Html.span,
       _U.list([$Html$Attributes.draggable("true")
               ,A2($DragDrop.onDragStart,address,Selected)
-              ,A3($DragDrop.onDragOver,dropOk,address,NoOp)
+              ,A3($DragDrop.onDragOver,dropEffect,address,NoOp)
               ,A2($DragDrop.onDrop,address,dropAction)
               ,$Html$Attributes.style(_U.list([$Style.grayBackground,$Style.redBorder,$Style.smallPadding]))]),
       _U.list([$Html.text(toString(formula))]))]));
@@ -10665,7 +10723,7 @@ Elm.Game.View.make = function (_elm) {
       var dropAttributes = function () {
          var _p0 = {ctor: "_Tuple2",_0: selectionContext,_1: selected};
          if (_p0.ctor === "_Tuple2" && _p0._0.ctor === "Just" && _p0._1.ctor === "Just") {
-               return _U.list([A3($DragDrop.onDragOver,true,address,$Game$Actions.NoOp)
+               return _U.list([A3($DragDrop.onDragOver,$DragDrop.Copy,address,$Game$Actions.NoOp)
                               ,A2($DragDrop.onDrop,
                               address,
                               $Game$Actions.MainContextAction($Game$Context.AddFormula(A2($Game$Formula.Impl,_p0._0._0,_p0._1._0))))]);
@@ -10701,7 +10759,7 @@ Elm.Game.View.make = function (_elm) {
                         return _p4;
                      }
                }();
-               return _U.list([A3($DragDrop.onDragOver,true,address,$Game$Actions.NoOp)
+               return _U.list([A3($DragDrop.onDragOver,$DragDrop.Copy,address,$Game$Actions.NoOp)
                               ,A2($DragDrop.onDrop,address,A3($Game$Actions.ContextAction,index,context.hypothesis,$Game$Context.AddFormula(resultOfMove)))]);
             } else {
                return _U.list([]);
