@@ -47,7 +47,35 @@ Elm.Native.DragDrop.make = function(localRuntime) {
 		return property('on' + name, eventHandler);
 	}
 
+  function onDragOver(options, decoder, createMessage)
+	{
+    var name = 'dragover';
+		function eventHandler(event)
+		{
+
+			var value = A2(Json.runDecoderValue, decoder, event);
+			if (value.ctor === 'Ok')
+			{
+				if (options.stopPropagation)
+				{
+					event.stopPropagation();
+				}
+				if (options.preventDefault)
+				{
+					event.preventDefault();
+				}
+                if (typeof(options.dropEffect) == "string")
+                {
+                    event.dataTransfer.dropEffect = options.dropEffect;
+                }
+				Signal.sendMessage(createMessage(value._0));
+			}
+		}
+		return property('on' + name, eventHandler);
+	}
+
   return localRuntime.Native.Json.values = {
-    onDragStart: F3(onDragStart)
+    onDragStart: F3(onDragStart),
+    onDragOver: F3(onDragOver)
   };
 };

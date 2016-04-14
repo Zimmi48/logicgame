@@ -41,7 +41,7 @@ viewContext selectionContext selected address index context =
 
           in
 
-          [ onDragOver True address NoOp
+          [ onDragOver Copy address NoOp
           , onDrop
               address
               (ContextAction index context.hypothesis <| Context.AddFormula resultOfMove)
@@ -73,7 +73,7 @@ viewMainContext selectionContext selected address context =
     dropAttributes =
       case (selectionContext , selected) of
         (Just f1 , Just f2) ->
-          [ onDragOver True address NoOp
+          [ onDragOver Copy address NoOp
           , onDrop address (MainContextAction <| Context.AddFormula (Impl f1 f2))
           ]
 

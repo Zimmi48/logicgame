@@ -10,12 +10,40 @@ import Native.DragDrop
 {- ## Custom events -}
 
 
--- the boolean argument tells if it is possible to drop the currently dragged element on the element it is dragged over
-onDragOver : Bool -> Signal.Address a -> a -> Attribute
-onDragOver dropOk addr msg =
-  onWithOptions
-    "dragover"
-    {preventDefault = dropOk, stopPropagation = True}
+type DropEffect
+  = All
+  | Copy
+  | Link
+  | Move
+  | None
+
+
+toString : DropEffect -> String
+toString dropEffect =
+  case dropEffect of
+    All ->
+      "all"
+
+    Copy ->
+      "copy"
+
+    Link ->
+      "link"
+
+    Move ->
+      "move"
+
+    None ->
+      "none"
+
+
+onDragOver : DropEffect -> Signal.Address a -> a -> Attribute
+onDragOver dropEffect addr msg =
+  Native.DragDrop.onDragOver
+    { preventDefault = True
+    , stopPropagation = True
+    , dropEffect = toString dropEffect
+    }
     (Json.Decode.succeed ())
     (\_ -> Signal.message addr msg)
 

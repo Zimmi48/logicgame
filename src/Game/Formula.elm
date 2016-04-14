@@ -73,15 +73,13 @@ view selected address formula =
   let
     combined = selected `andThen` combine formula
 
-    dropOk = combined /= Nothing
-
-    dropAction =
+    (dropAction , dropEffect) =
       case combined of
         Just f ->
-          Result f
+          (Result f , All)
 
         Nothing ->
-          NoOp
+          (NoOp , None)
 
   in
 
@@ -95,7 +93,7 @@ view selected address formula =
     [ span
       [ draggable "true"
       , onDragStart address Selected
-      , onDragOver dropOk address NoOp
+      , onDragOver dropEffect address NoOp
       , onDrop address dropAction
       , style
           [ grayBackground
