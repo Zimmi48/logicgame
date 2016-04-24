@@ -10170,6 +10170,160 @@ Elm.DragDrop.make = function (_elm) {
                                  ,onDragOver: onDragOver
                                  ,onDrop: onDrop
                                  ,onDragStart: onDragStart};
+};Elm.Native.Time = {};
+
+Elm.Native.Time.make = function(localRuntime)
+{
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.Time = localRuntime.Native.Time || {};
+	if (localRuntime.Native.Time.values)
+	{
+		return localRuntime.Native.Time.values;
+	}
+
+	var NS = Elm.Native.Signal.make(localRuntime);
+	var Maybe = Elm.Maybe.make(localRuntime);
+
+
+	// FRAMES PER SECOND
+
+	function fpsWhen(desiredFPS, isOn)
+	{
+		var msPerFrame = 1000 / desiredFPS;
+		var ticker = NS.input('fps-' + desiredFPS, null);
+
+		function notifyTicker()
+		{
+			localRuntime.notify(ticker.id, null);
+		}
+
+		function firstArg(x, y)
+		{
+			return x;
+		}
+
+		// input fires either when isOn changes, or when ticker fires.
+		// Its value is a tuple with the current timestamp, and the state of isOn
+		var input = NS.timestamp(A3(NS.map2, F2(firstArg), NS.dropRepeats(isOn), ticker));
+
+		var initialState = {
+			isOn: false,
+			time: localRuntime.timer.programStart,
+			delta: 0
+		};
+
+		var timeoutId;
+
+		function update(input, state)
+		{
+			var currentTime = input._0;
+			var isOn = input._1;
+			var wasOn = state.isOn;
+			var previousTime = state.time;
+
+			if (isOn)
+			{
+				timeoutId = localRuntime.setTimeout(notifyTicker, msPerFrame);
+			}
+			else if (wasOn)
+			{
+				clearTimeout(timeoutId);
+			}
+
+			return {
+				isOn: isOn,
+				time: currentTime,
+				delta: (isOn && !wasOn) ? 0 : currentTime - previousTime
+			};
+		}
+
+		return A2(
+			NS.map,
+			function(state) { return state.delta; },
+			A3(NS.foldp, F2(update), update(input.value, initialState), input)
+		);
+	}
+
+
+	// EVERY
+
+	function every(t)
+	{
+		var ticker = NS.input('every-' + t, null);
+		function tellTime()
+		{
+			localRuntime.notify(ticker.id, null);
+		}
+		var clock = A2(NS.map, fst, NS.timestamp(ticker));
+		setInterval(tellTime, t);
+		return clock;
+	}
+
+
+	function fst(pair)
+	{
+		return pair._0;
+	}
+
+
+	function read(s)
+	{
+		var t = Date.parse(s);
+		return isNaN(t) ? Maybe.Nothing : Maybe.Just(t);
+	}
+
+	return localRuntime.Native.Time.values = {
+		fpsWhen: F2(fpsWhen),
+		every: every,
+		toDate: function(t) { return new Date(t); },
+		read: read
+	};
+};
+Elm.Time = Elm.Time || {};
+Elm.Time.make = function (_elm) {
+   "use strict";
+   _elm.Time = _elm.Time || {};
+   if (_elm.Time.values) return _elm.Time.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Native$Signal = Elm.Native.Signal.make(_elm),
+   $Native$Time = Elm.Native.Time.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var delay = $Native$Signal.delay;
+   var since = F2(function (time,signal) {
+      var stop = A2($Signal.map,$Basics.always(-1),A2(delay,time,signal));
+      var start = A2($Signal.map,$Basics.always(1),signal);
+      var delaydiff = A3($Signal.foldp,F2(function (x,y) {    return x + y;}),0,A2($Signal.merge,start,stop));
+      return A2($Signal.map,F2(function (x,y) {    return !_U.eq(x,y);})(0),delaydiff);
+   });
+   var timestamp = $Native$Signal.timestamp;
+   var every = $Native$Time.every;
+   var fpsWhen = $Native$Time.fpsWhen;
+   var fps = function (targetFrames) {    return A2(fpsWhen,targetFrames,$Signal.constant(true));};
+   var inMilliseconds = function (t) {    return t;};
+   var millisecond = 1;
+   var second = 1000 * millisecond;
+   var minute = 60 * second;
+   var hour = 60 * minute;
+   var inHours = function (t) {    return t / hour;};
+   var inMinutes = function (t) {    return t / minute;};
+   var inSeconds = function (t) {    return t / second;};
+   return _elm.Time.values = {_op: _op
+                             ,millisecond: millisecond
+                             ,second: second
+                             ,minute: minute
+                             ,hour: hour
+                             ,inMilliseconds: inMilliseconds
+                             ,inSeconds: inSeconds
+                             ,inMinutes: inMinutes
+                             ,inHours: inHours
+                             ,fps: fps
+                             ,fpsWhen: fpsWhen
+                             ,every: every
+                             ,timestamp: timestamp
+                             ,delay: delay
+                             ,since: since};
 };Elm.Html = Elm.Html || {};
 Elm.Html.Attributes = Elm.Html.Attributes || {};
 Elm.Html.Attributes.make = function (_elm) {
@@ -10579,12 +10733,14 @@ Elm.Game.Actions.make = function (_elm) {
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
+   $Signal = Elm.Signal.make(_elm),
+   $Time = Elm.Time.make(_elm);
    var _op = {};
+   var Time = function (a) {    return {ctor: "Time",_0: a};};
    var ContextAction = F3(function (a,b,c) {    return {ctor: "ContextAction",_0: a,_1: b,_2: c};});
    var MainContextAction = function (a) {    return {ctor: "MainContextAction",_0: a};};
    var NoOp = {ctor: "NoOp"};
-   return _elm.Game.Actions.values = {_op: _op,NoOp: NoOp,MainContextAction: MainContextAction,ContextAction: ContextAction};
+   return _elm.Game.Actions.values = {_op: _op,NoOp: NoOp,MainContextAction: MainContextAction,ContextAction: ContextAction,Time: Time};
 };Elm.Game = Elm.Game || {};
 Elm.Game.Model = Elm.Game.Model || {};
 Elm.Game.Model.make = function (_elm) {
@@ -10601,26 +10757,36 @@ Elm.Game.Model.make = function (_elm) {
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
+   $Signal = Elm.Signal.make(_elm),
+   $Time = Elm.Time.make(_elm);
    var _op = {};
    var d = $Game$Formula.Var("D");
-   var defaultModel = {mainContext: $Game$Context.fromList(_U.list([]))
-                      ,contexts: $Array.empty
-                      ,goal: d
-                      ,message: ""
-                      ,selected: $Maybe.Nothing
-                      ,selectionContext: $Maybe.Nothing
-                      ,finished: false};
    var c = $Game$Formula.Var("C");
    var b = $Game$Formula.Var("B");
    var a = $Game$Formula.Var("A");
+   var hintsOfHints = function (_p0) {    var _p1 = _p0;return _p1._0;};
+   var hints = function (model) {    return A3(hintsOfHints,model.hints,model.currentTime,model);};
+   var Hints = function (a) {    return {ctor: "Hints",_0: a};};
+   var defaultModel = {mainContext: $Game$Context.fromList(_U.list([]))
+                      ,contexts: $Array.empty
+                      ,goal: d
+                      ,hints: Hints(F2(function (_p3,_p2) {    return "";}))
+                      ,message: ""
+                      ,selected: $Maybe.Nothing
+                      ,selectionContext: $Maybe.Nothing
+                      ,finished: false
+                      ,startTime: $Maybe.Nothing
+                      ,currentTime: 0};
    var init = function (level) {
       return _U.eq(level,0) ? _U.update(defaultModel,
       {mainContext: $Game$Context.fromList(_U.list([A2($Game$Formula.Impl,a,b)
                                                    ,A2($Game$Formula.Impl,a,A2($Game$Formula.Impl,c,d))
                                                    ,a
                                                    ,A2($Game$Formula.Impl,b,c)]))
-      ,message: "Try moving A on A ⇒ B."}) : _U.eq(level,1) ? _U.update(defaultModel,
+      ,hints: Hints(F2(function (time,model) {
+         return _U.cmp(time,3 * $Time.second) > 0 && (_U.eq(A2($Array.get,0,model.mainContext.formulas),
+         $Maybe.Just(A2($Game$Formula.Impl,a,b))) && _U.eq(A2($Array.get,2,model.mainContext.formulas),$Maybe.Just(a))) ? "Try moving A on A ⇒ B." : "";
+      }))}) : _U.eq(level,1) ? _U.update(defaultModel,
       {mainContext: $Game$Context.fromList(_U.list([A2($Game$Formula.Impl,a,b)
                                                    ,A2($Game$Formula.Impl,c,b)
                                                    ,A2($Game$Formula.Impl,c,d)
@@ -10632,7 +10798,11 @@ Elm.Game.Model.make = function (_elm) {
                                                    ,A2($Game$Formula.Impl,b,c)
                                                    ,A2($Game$Formula.Impl,a,d)]))
       ,contexts: $Array.fromList(_U.list([$Game$Context.empty(a)]))
-      ,message: "You can drag and drop any formula into the green context. Some will just be copied, others will be transformed."}) : _U.update(defaultModel,
+      ,hints: Hints(F2(function (time,model) {
+         return _U.eq(A2($Maybe.map,function (_p4) {    return $Array.isEmpty(function (_) {    return _.formulas;}(_p4));},A2($Array.get,0,model.contexts)),
+         $Maybe.Just(false)) ? "You can also drag any formula out of the green context. " : _U.cmp(time,
+         3 * $Time.second) > 0 ? "You can drag and drop any formula into the green context. Some will just be copied, others will be transformed." : "";
+      }))}) : _U.update(defaultModel,
       {mainContext: $Game$Context.fromList(_U.list([A2($Game$Formula.Impl,c,d)
                                                    ,A2($Game$Formula.Impl,d,c)
                                                    ,A2($Game$Formula.Impl,A2($Game$Formula.Impl,a,c),A2($Game$Formula.Impl,A2($Game$Formula.Impl,b,c),c))
@@ -10640,9 +10810,38 @@ Elm.Game.Model.make = function (_elm) {
                                                    ,A2($Game$Formula.Impl,b,a)]))
       ,contexts: $Array.fromList(_U.list([$Game$Context.empty(a),$Game$Context.empty(b)]))});
    };
-   var Model = F7(function (a,b,c,d,e,f,g) {    return {mainContext: a,contexts: b,goal: c,message: d,selected: e,selectionContext: f,finished: g};});
+   var Model = function (a) {
+      return function (b) {
+         return function (c) {
+            return function (d) {
+               return function (e) {
+                  return function (f) {
+                     return function (g) {
+                        return function (h) {
+                           return function (i) {
+                              return function (j) {
+                                 return {mainContext: a
+                                        ,contexts: b
+                                        ,goal: c
+                                        ,hints: d
+                                        ,message: e
+                                        ,selected: f
+                                        ,selectionContext: g
+                                        ,finished: h
+                                        ,startTime: i
+                                        ,currentTime: j};
+                              };
+                           };
+                        };
+                     };
+                  };
+               };
+            };
+         };
+      };
+   };
    var levelMax = 3;
-   return _elm.Game.Model.values = {_op: _op,levelMax: levelMax,init: init,Model: Model};
+   return _elm.Game.Model.values = {_op: _op,levelMax: levelMax,init: init,hints: hints,Model: Model};
 };Elm.Game = Elm.Game || {};
 Elm.Game.Update = Elm.Game.Update || {};
 Elm.Game.Update.make = function (_elm) {
@@ -10663,37 +10862,45 @@ Elm.Game.Update.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
+   var update2 = function (model) {    return model.finished ? model : _U.update(model,{message: $Game$Model.hints(model)});};
    var addFormulaToMainContext = F3(function (formula,action,model) {
       var finished = model.finished || _U.eq(formula,model.goal);
       return _U.update(model,
       {mainContext: A2($Game$Context.update,action,model.mainContext)
       ,selected: $Maybe.Nothing
       ,selectionContext: $Maybe.Nothing
-      ,message: finished ? "You win!" : ""
+      ,message: finished ? "You win!" : model.message
       ,finished: finished});
    });
-   var update = F2(function (action,model) {
+   var update1 = F2(function (action,model) {
       var _p0 = action;
-      _v0_5: do {
+      _v0_6: do {
          switch (_p0.ctor)
          {case "MainContextAction": switch (_p0._0.ctor)
               {case "FormulaAction": switch (_p0._0._2.ctor)
                    {case "Selected": return _U.update(model,{selected: $Maybe.Just(_p0._0._1),selectionContext: $Maybe.Nothing});
                       case "Result": return A3(addFormulaToMainContext,_p0._0._2._0,_p0._0,model);
-                      default: break _v0_5;}
+                      default: break _v0_6;}
                  case "AddFormula": return A3(addFormulaToMainContext,_p0._0._0,_p0._0,model);
-                 default: break _v0_5;}
+                 default: break _v0_6;}
             case "ContextAction": if (_p0._2.ctor === "FormulaAction" && _p0._2._2.ctor === "Selected") {
                     return _U.update(model,{selected: $Maybe.Just(_p0._2._1),selectionContext: $Maybe.Just(_p0._1)});
                  } else {
                     return _U.update(model,
-                    {contexts: A2($Array.indexedMap,F2(function (i,c) {    return _U.eq(i,_p0._0) ? A2($Game$Context.update,_p0._2,c) : c;}),model.contexts)
-                    ,message: model.finished ? model.message : ""});
+                    {contexts: A2($Array.indexedMap,F2(function (i,c) {    return _U.eq(i,_p0._0) ? A2($Game$Context.update,_p0._2,c) : c;}),model.contexts)});
                  }
-            default: break _v0_5;}
+            case "Time": var _p2 = _p0._0;
+              var _p1 = model.startTime;
+              if (_p1.ctor === "Nothing") {
+                    return _U.update(model,{startTime: $Maybe.Just(_p2)});
+                 } else {
+                    return _U.update(model,{currentTime: _p2 - _p1._0});
+                 }
+            default: break _v0_6;}
       } while (false);
       return model;
    });
+   var update = F2(function (action,model) {    return update2(A2(update1,action,model));});
    return _elm.Game.Update.values = {_op: _op,update: update};
 };Elm.Game = Elm.Game || {};
 Elm.Game.View = Elm.Game.View || {};
@@ -10785,38 +10992,239 @@ Elm.Game.View.make = function (_elm) {
               ,A2($Html.div,_U.list([$Html$Attributes.style(_U.list([$Style.fixedHeight,$Style.italic]))]),_U.list([$Html.text(model.message)]))]))));
    });
    return _elm.Game.View.values = {_op: _op,view: view};
-};Elm.StartApp = Elm.StartApp || {};
-Elm.StartApp.Simple = Elm.StartApp.Simple || {};
-Elm.StartApp.Simple.make = function (_elm) {
+};Elm.Native.Effects = {};
+Elm.Native.Effects.make = function(localRuntime) {
+
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.Effects = localRuntime.Native.Effects || {};
+	if (localRuntime.Native.Effects.values)
+	{
+		return localRuntime.Native.Effects.values;
+	}
+
+	var Task = Elm.Native.Task.make(localRuntime);
+	var Utils = Elm.Native.Utils.make(localRuntime);
+	var Signal = Elm.Signal.make(localRuntime);
+	var List = Elm.Native.List.make(localRuntime);
+
+
+	// polyfill so things will work even if rAF is not available for some reason
+	var _requestAnimationFrame =
+		typeof requestAnimationFrame !== 'undefined'
+			? requestAnimationFrame
+			: function(cb) { setTimeout(cb, 1000 / 60); }
+			;
+
+
+	// batchedSending and sendCallback implement a small state machine in order
+	// to schedule only one send(time) call per animation frame.
+	//
+	// Invariants:
+	// 1. In the NO_REQUEST state, there is never a scheduled sendCallback.
+	// 2. In the PENDING_REQUEST and EXTRA_REQUEST states, there is always exactly
+	//    one scheduled sendCallback.
+	var NO_REQUEST = 0;
+	var PENDING_REQUEST = 1;
+	var EXTRA_REQUEST = 2;
+	var state = NO_REQUEST;
+	var messageArray = [];
+
+
+	function batchedSending(address, tickMessages)
+	{
+		// insert ticks into the messageArray
+		var foundAddress = false;
+
+		for (var i = messageArray.length; i--; )
+		{
+			if (messageArray[i].address === address)
+			{
+				foundAddress = true;
+				messageArray[i].tickMessages = A3(List.foldl, List.cons, messageArray[i].tickMessages, tickMessages);
+				break;
+			}
+		}
+
+		if (!foundAddress)
+		{
+			messageArray.push({ address: address, tickMessages: tickMessages });
+		}
+
+		// do the appropriate state transition
+		switch (state)
+		{
+			case NO_REQUEST:
+				_requestAnimationFrame(sendCallback);
+				state = PENDING_REQUEST;
+				break;
+			case PENDING_REQUEST:
+				state = PENDING_REQUEST;
+				break;
+			case EXTRA_REQUEST:
+				state = PENDING_REQUEST;
+				break;
+		}
+	}
+
+
+	function sendCallback(time)
+	{
+		switch (state)
+		{
+			case NO_REQUEST:
+				// This state should not be possible. How can there be no
+				// request, yet somehow we are actively fulfilling a
+				// request?
+				throw new Error(
+					'Unexpected send callback.\n' +
+					'Please report this to <https://github.com/evancz/elm-effects/issues>.'
+				);
+
+			case PENDING_REQUEST:
+				// At this point, we do not *know* that another frame is
+				// needed, but we make an extra request to rAF just in
+				// case. It's possible to drop a frame if rAF is called
+				// too late, so we just do it preemptively.
+				_requestAnimationFrame(sendCallback);
+				state = EXTRA_REQUEST;
+
+				// There's also stuff we definitely need to send.
+				send(time);
+				return;
+
+			case EXTRA_REQUEST:
+				// Turns out the extra request was not needed, so we will
+				// stop calling rAF. No reason to call it all the time if
+				// no one needs it.
+				state = NO_REQUEST;
+				return;
+		}
+	}
+
+
+	function send(time)
+	{
+		for (var i = messageArray.length; i--; )
+		{
+			var messages = A3(
+				List.foldl,
+				F2( function(toAction, list) { return List.Cons(toAction(time), list); } ),
+				List.Nil,
+				messageArray[i].tickMessages
+			);
+			Task.perform( A2(Signal.send, messageArray[i].address, messages) );
+		}
+		messageArray = [];
+	}
+
+
+	function requestTickSending(address, tickMessages)
+	{
+		return Task.asyncFunction(function(callback) {
+			batchedSending(address, tickMessages);
+			callback(Task.succeed(Utils.Tuple0));
+		});
+	}
+
+
+	return localRuntime.Native.Effects.values = {
+		requestTickSending: F2(requestTickSending)
+	};
+
+};
+Elm.Effects = Elm.Effects || {};
+Elm.Effects.make = function (_elm) {
    "use strict";
-   _elm.StartApp = _elm.StartApp || {};
-   _elm.StartApp.Simple = _elm.StartApp.Simple || {};
-   if (_elm.StartApp.Simple.values) return _elm.StartApp.Simple.values;
+   _elm.Effects = _elm.Effects || {};
+   if (_elm.Effects.values) return _elm.Effects.values;
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Native$Effects = Elm.Native.Effects.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Task = Elm.Task.make(_elm),
+   $Time = Elm.Time.make(_elm);
+   var _op = {};
+   var ignore = function (task) {    return A2($Task.map,$Basics.always({ctor: "_Tuple0"}),task);};
+   var requestTickSending = $Native$Effects.requestTickSending;
+   var toTaskHelp = F3(function (address,effect,_p0) {
+      var _p1 = _p0;
+      var _p5 = _p1._1;
+      var _p4 = _p1;
+      var _p3 = _p1._0;
+      var _p2 = effect;
+      switch (_p2.ctor)
+      {case "Task": var reporter = A2($Task.andThen,_p2._0,function (answer) {    return A2($Signal.send,address,_U.list([answer]));});
+           return {ctor: "_Tuple2",_0: A2($Task.andThen,_p3,$Basics.always(ignore($Task.spawn(reporter)))),_1: _p5};
+         case "Tick": return {ctor: "_Tuple2",_0: _p3,_1: A2($List._op["::"],_p2._0,_p5)};
+         case "None": return _p4;
+         default: return A3($List.foldl,toTaskHelp(address),_p4,_p2._0);}
+   });
+   var toTask = F2(function (address,effect) {
+      var _p6 = A3(toTaskHelp,address,effect,{ctor: "_Tuple2",_0: $Task.succeed({ctor: "_Tuple0"}),_1: _U.list([])});
+      var combinedTask = _p6._0;
+      var tickMessages = _p6._1;
+      return $List.isEmpty(tickMessages) ? combinedTask : A2($Task.andThen,combinedTask,$Basics.always(A2(requestTickSending,address,tickMessages)));
+   });
+   var Never = function (a) {    return {ctor: "Never",_0: a};};
+   var Batch = function (a) {    return {ctor: "Batch",_0: a};};
+   var batch = Batch;
+   var None = {ctor: "None"};
+   var none = None;
+   var Tick = function (a) {    return {ctor: "Tick",_0: a};};
+   var tick = Tick;
+   var Task = function (a) {    return {ctor: "Task",_0: a};};
+   var task = Task;
+   var map = F2(function (func,effect) {
+      var _p7 = effect;
+      switch (_p7.ctor)
+      {case "Task": return Task(A2($Task.map,func,_p7._0));
+         case "Tick": return Tick(function (_p8) {    return func(_p7._0(_p8));});
+         case "None": return None;
+         default: return Batch(A2($List.map,map(func),_p7._0));}
+   });
+   return _elm.Effects.values = {_op: _op,none: none,task: task,tick: tick,map: map,batch: batch,toTask: toTask};
+};Elm.StartApp = Elm.StartApp || {};
+Elm.StartApp.make = function (_elm) {
+   "use strict";
+   _elm.StartApp = _elm.StartApp || {};
+   if (_elm.StartApp.values) return _elm.StartApp.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Effects = Elm.Effects.make(_elm),
    $Html = Elm.Html.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
+   $Signal = Elm.Signal.make(_elm),
+   $Task = Elm.Task.make(_elm);
    var _op = {};
    var start = function (config) {
-      var update = F2(function (maybeAction,model) {
-         var _p0 = maybeAction;
-         if (_p0.ctor === "Just") {
-               return A2(config.update,_p0._0,model);
-            } else {
-               return _U.crashCase("StartApp.Simple",{start: {line: 91,column: 7},end: {line: 96,column: 52}},_p0)("This should never happen.");
-            }
+      var updateStep = F2(function (action,_p0) {
+         var _p1 = _p0;
+         var _p2 = A2(config.update,action,_p1._0);
+         var newModel = _p2._0;
+         var additionalEffects = _p2._1;
+         return {ctor: "_Tuple2",_0: newModel,_1: $Effects.batch(_U.list([_p1._1,additionalEffects]))};
       });
-      var actions = $Signal.mailbox($Maybe.Nothing);
-      var address = A2($Signal.forwardTo,actions.address,$Maybe.Just);
-      var model = A3($Signal.foldp,update,config.model,actions.signal);
-      return A2($Signal.map,config.view(address),model);
+      var update = F2(function (actions,_p3) {    var _p4 = _p3;return A3($List.foldl,updateStep,{ctor: "_Tuple2",_0: _p4._0,_1: $Effects.none},actions);});
+      var messages = $Signal.mailbox(_U.list([]));
+      var singleton = function (action) {    return _U.list([action]);};
+      var address = A2($Signal.forwardTo,messages.address,singleton);
+      var inputs = $Signal.mergeMany(A2($List._op["::"],messages.signal,A2($List.map,$Signal.map(singleton),config.inputs)));
+      var effectsAndModel = A3($Signal.foldp,update,config.init,inputs);
+      var model = A2($Signal.map,$Basics.fst,effectsAndModel);
+      return {html: A2($Signal.map,config.view(address),model)
+             ,model: model
+             ,tasks: A2($Signal.map,function (_p5) {    return A2($Effects.toTask,messages.address,$Basics.snd(_p5));},effectsAndModel)};
    };
-   var Config = F3(function (a,b,c) {    return {model: a,view: b,update: c};});
-   return _elm.StartApp.Simple.values = {_op: _op,Config: Config,start: start};
+   var App = F3(function (a,b,c) {    return {html: a,model: b,tasks: c};});
+   var Config = F4(function (a,b,c,d) {    return {init: a,update: b,view: c,inputs: d};});
+   return _elm.StartApp.values = {_op: _op,start: start,Config: Config,App: App};
 };Elm.Main = Elm.Main || {};
 Elm.Main.make = function (_elm) {
    "use strict";
@@ -10825,6 +11233,7 @@ Elm.Main.make = function (_elm) {
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Debug = Elm.Debug.make(_elm),
+   $Effects = Elm.Effects.make(_elm),
    $Game$Actions = Elm.Game.Actions.make(_elm),
    $Game$Model = Elm.Game.Model.make(_elm),
    $Game$Update = Elm.Game.Update.make(_elm),
@@ -10836,7 +11245,8 @@ Elm.Main.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
-   $StartApp$Simple = Elm.StartApp.Simple.make(_elm);
+   $StartApp = Elm.StartApp.make(_elm),
+   $Time = Elm.Time.make(_elm);
    var _op = {};
    var PreviousLevel = {ctor: "PreviousLevel"};
    var NextLevel = {ctor: "NextLevel"};
@@ -10871,6 +11281,10 @@ Elm.Main.make = function (_elm) {
    var initModel = {game: $Game$Model.init(0),maxUnlocked: 0,level: 0};
    var Model = F3(function (a,b,c) {    return {game: a,maxUnlocked: b,level: c};});
    var title = Elm.Native.Port.make(_elm).outbound("title",function (v) {    return v;},"A simple logic game");
-   var main = $StartApp$Simple.start({model: initModel,view: view,update: update});
+   var app = $StartApp.start({init: {ctor: "_Tuple2",_0: initModel,_1: $Effects.none}
+                             ,view: view
+                             ,update: F2(function (a,m) {    return {ctor: "_Tuple2",_0: A2(update,a,m),_1: $Effects.none};})
+                             ,inputs: _U.list([A2($Signal.map,function (_p1) {    return GameAction($Game$Actions.Time(_p1));},$Time.every($Time.second))])});
+   var main = app.html;
    return _elm.Main.values = {_op: _op,main: main};
 };</script></head><body><script type="text/javascript">Elm.fullscreen(Elm.Main)</script></body></html>
