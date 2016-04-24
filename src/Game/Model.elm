@@ -2,7 +2,7 @@ module Game.Model (levelMax, Model, init, hints) where
 
 
 import Array exposing (Array)
-import Time exposing (Time)
+import Time exposing (Time, second)
 import Game.Formula exposing (Formula(..))
 import Game.Context as Context exposing (Context)
 
@@ -19,6 +19,8 @@ type alias Model =
   , selected : Maybe Formula
   , selectionContext : Maybe Formula
   , finished : Bool
+  , startTime : Maybe Time
+  , currentTime : Time
   }
 
 
@@ -29,8 +31,8 @@ hintsOfHints : Hints -> Time -> Model -> String
 hintsOfHints (Hints hints) = hints
 
 
-hints : Time -> Model -> String
-hints time model = (hintsOfHints model.hints) time model
+hints : Model -> String
+hints model = (hintsOfHints model.hints) model.currentTime model
 
 
 a = Var "A"
@@ -49,6 +51,8 @@ defaultModel =
   , selected = Nothing
   , selectionContext = Nothing
   , finished = False
+  , startTime = Nothing
+  , currentTime = 0
   }
 
 
@@ -63,7 +67,17 @@ init level =
           , a
           , Impl b c
           ]
-    , hints = Hints (\_ _ -> "Try moving A on A ⇒ B.")
+    , hints =
+        Hints
+          (\time model ->
+              if time > 3 * second
+              && Array.get 0 model.mainContext.formulas == Just (Impl a b)
+              && Array.get 2 model.mainContext.formulas == Just a then
+                "Try moving A on A ⇒ B."
+
+              else
+                ""
+          )
     }
 
   else if level == 1 then
@@ -90,8 +104,15 @@ init level =
     , contexts = Array.fromList [ Context.empty a ]
     , hints =
         Hints
-          (\_ _ ->
-              "You can drag and drop any formula into the green context. Some will just be copied, others will be transformed."
+          (\time model ->
+              if Maybe.map (.formulas >> Array.isEmpty) (Array.get 0 model.contexts) == Just False then
+                "You can also drag any formula out of the green context. "
+
+              else if time > 3 * second then
+                "You can drag and drop any formula into the green context. Some will just be copied, others will be transformed."
+
+              else
+                ""
           )
     }
 

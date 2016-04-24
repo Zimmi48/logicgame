@@ -10,6 +10,7 @@ Copyright Théo Zimmermann 2016. License MPL 2.0
 -}
 
 
+import Time exposing (..)
 import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
@@ -24,15 +25,17 @@ import Game.Actions
 {- # MAIN -}
 
 
-main : Signal Html
-main =
+app =
   StartApp.start
     { init = (initModel, Effects.none)
     , view = view
     , update = \a m -> (update a m , Effects.none)
-    , inputs = []
+    , inputs = [ Signal.map (Game.Actions.Time >> GameAction) (every second) ]
     }
-  |> .html
+
+
+main : Signal Html
+main = app.html
 
 
 port title : String

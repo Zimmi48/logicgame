@@ -20,12 +20,15 @@ addFormulaToMainContext formula action model =
     mainContext = Context.update action model.mainContext
   , selected = Nothing
   , selectionContext = Nothing
-  , message = if finished then "You win!" else ""
+  , message = if finished then "You win!" else model.message
   , finished = finished
   }
 
 update : Game.Actions.Action -> Model -> Model
-update action model =
+update action model = update1 action model |> update2
+
+update1 : Game.Actions.Action -> Model -> Model
+update1 action model =
   case action of
     MainContextAction (FormulaAction _ formula Selected) ->
       { model |
@@ -54,9 +57,21 @@ update action model =
       }
 
     Time time ->
-      { model |
-        message = hints time model
-      }
+      case model.startTime of
+        Nothing ->
+          { model | startTime = Just time }
+
+        Just start ->
+          { model | currentTime = time - start }
 
     _ ->
       model
+
+update2 : Model -> Model
+update2 model =
+  if model.finished then
+    model
+
+  else
+    { model | message = hints model }
+
