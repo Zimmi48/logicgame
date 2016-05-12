@@ -4,7 +4,7 @@ module DragDrop exposing (..)
 import Html exposing (Attribute)
 import Html.Events exposing (onWithOptions)
 import Json.Decode
-import Native.DragDrop
+-- import Native.DragDrop
 
 
 {- ## Custom events -}
@@ -39,7 +39,10 @@ toString dropEffect =
 
 onDragOver : DropEffect -> a -> Attribute a
 onDragOver dropEffect msg =
-  Debug.crash "onDragOver not implemented"
+  onWithOptions
+    "dragover"
+     { preventDefault = True, stopPropagation = True }
+     (Json.Decode.succeed msg)
 {-
   Native.DragDrop.onDragOver
     { preventDefault = True
@@ -61,7 +64,10 @@ onDrop msg =
 -- to emit the event, the element needs to have the attribute draggable
 onDragStart : a -> Attribute a
 onDragStart msg =
-  Debug.crash "onDragStart not implemented"
+  onWithOptions
+    "dragstart"
+    { preventDefault = False, stopPropagation = False }
+    (Json.Decode.succeed msg)
 {-
   Native.DragDrop.onDragStart
     {preventDefault = False, stopPropagation = False}
