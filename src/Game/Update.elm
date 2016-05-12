@@ -1,4 +1,4 @@
-module Game.Update (update) where
+module Game.Update exposing (update)
 
 
 import Array

@@ -1,4 +1,4 @@
-module Game.Model (levelMax, Model, init, hints) where
+module Game.Model exposing (levelMax, Model, init, hints)
 
 
 import Array exposing (Array)

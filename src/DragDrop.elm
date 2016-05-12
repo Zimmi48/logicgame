@@ -1,4 +1,4 @@
-module DragDrop (..) where
+module DragDrop exposing (..)
 
 
 import Html exposing (Attribute)
@@ -37,8 +37,10 @@ toString dropEffect =
       "none"
 
 
-onDragOver : DropEffect -> Signal.Address a -> a -> Attribute
-onDragOver dropEffect addr msg =
+onDragOver : DropEffect -> a -> Attribute a
+onDragOver dropEffect msg =
+  Debug.crash "onDragOver not implemented"
+{-
   Native.DragDrop.onDragOver
     { preventDefault = True
     , stopPropagation = True
@@ -46,21 +48,25 @@ onDragOver dropEffect addr msg =
     }
     (Json.Decode.succeed ())
     (\_ -> Signal.message addr msg)
+-}
 
-
-onDrop : Signal.Address a -> a -> Attribute
-onDrop addr msg =
+onDrop : a -> Attribute a
+onDrop msg =
   onWithOptions
     "drop"
     {preventDefault = False, stopPropagation = True}
-    (Json.Decode.succeed ())
-    (\_ -> Signal.message addr msg)
+    (Json.Decode.succeed msg)
 
 
 -- to emit the event, the element needs to have the attribute draggable
-onDragStart : Signal.Address a -> a -> Attribute
-onDragStart addr msg =
+onDragStart : a -> Attribute a
+onDragStart msg =
+  Debug.crash "onDragStart not implemented"
+{-
   Native.DragDrop.onDragStart
     {preventDefault = False, stopPropagation = False}
     (Json.Decode.succeed ())
     (\_ -> Signal.message addr msg)
+-}
+
+

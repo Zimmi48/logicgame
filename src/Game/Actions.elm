@@ -1,4 +1,4 @@
-module Game.Actions (..) where
+module Game.Actions exposing (..)
 
 
 import Time exposing (Time)

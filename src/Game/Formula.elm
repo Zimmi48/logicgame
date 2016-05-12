@@ -1,4 +1,4 @@
-module Game.Formula (Formula(..), toString, view, Action(..)) where
+module Game.Formula exposing (Formula(..), toString, view, Action(..))
 
 
 import Maybe exposing (andThen)
@@ -68,8 +68,8 @@ toString f =
        addPar f1 ++ " ⇒ " ++ addPar f2
 
 
-view : Maybe Formula -> Signal.Address Action -> Formula -> Html
-view selected address formula =
+view : Maybe Formula -> Formula -> Html Action
+view selected formula =
   let
     combined = selected `andThen` combine formula
 
@@ -92,9 +92,9 @@ view selected address formula =
     ]
     [ span
       [ draggable "true"
-      , onDragStart address Selected
-      , onDragOver dropEffect address NoOp
-      , onDrop address dropAction
+      , onDragStart Selected
+      , onDragOver dropEffect NoOp
+      , onDrop dropAction
       , style
           [ grayBackground
           , redBorder

@@ -1,4 +1,4 @@
-module Style (..) where
+module Style exposing (..)
 
 
 smallMargin = ("margin" , "4px 0")

@@ -1,5 +1,5 @@
 
-module Main (main) where
+module Main exposing (main)
 
 
 {-|
@@ -14,8 +14,7 @@ import Time exposing (..)
 import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
-import Effects
-import StartApp
+import Html.App
 import Game.View
 import Game.Update
 import Game.Model exposing (levelMax)
@@ -25,21 +24,17 @@ import Game.Actions
 {- # MAIN -}
 
 
-app =
-  StartApp.start
-    { init = (initModel, Effects.none)
+main =
+  Html.App.program
+    { init = (initModel, Cmd.none)
     , view = view
-    , update = \a m -> (update a m , Effects.none)
-    , inputs = [ Signal.map (Game.Actions.Time >> GameAction) (every second) ]
+    , update = \a m -> (update a m , Cmd.none)
+    , subscriptions = (\_ -> every second (Game.Actions.Time >> GameAction))
     }
 
 
-main : Signal Html
-main = app.html
-
-
-port title : String
-port title = "A simple logic game"
+--port title : String
+--port title = "A simple logic game"
 
 
 {- # MODEL -}
@@ -71,22 +66,22 @@ init index model =
 {- # VIEW -}
 
 
-view : Signal.Address Action -> Model -> Html
-view address model =
+view : Model -> Html Action
+view model =
   div
     [ style [("margin" , "10px")]
     ]
-    [ button [ onClick address Restart ] [ text "Restart" ]
+    [ button [ onClick Restart ] [ text "Restart" ]
     , button
         [ hidden (model.level == 0)
-        , onClick address PreviousLevel
+        , onClick PreviousLevel
         ] [ text "Previous level" ]
     , button
         [ disabled (model.maxUnlocked <= model.level)
         , hidden (levelMax <= model.level)
-        , onClick address NextLevel
+        , onClick NextLevel
         ] [ text "Next level" ]
-    , Game.View.view (Signal.forwardTo address GameAction) model.game
+    , Html.App.map GameAction (Game.View.view model.game)
     ]
 
 

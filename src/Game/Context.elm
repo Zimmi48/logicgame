@@ -1,8 +1,9 @@
-module Game.Context (..) where
+module Game.Context exposing (..)
 
 
 import Array exposing (Array)
 import Html exposing (..)
+import Html.App
 import Game.Formula as Formula exposing (Formula, Action(..))
 
 
@@ -31,16 +32,15 @@ empty hypothesis =
 {-| # View -}
 
 
-view : Maybe Formula -> Signal.Address Action -> Context a -> Html
-view selected address context =
+view : Maybe Formula -> Context a -> Html Action
+view selected context =
   div []
     ( Array.toList <|
       Array.indexedMap
         (\index formula ->
-            Formula.view
-              selected
-              (Signal.forwardTo address <| FormulaAction index formula)
-              formula
+            Html.App.map
+              (FormulaAction index formula)
+              (Formula.view selected formula)
         )
         context.formulas
     )
