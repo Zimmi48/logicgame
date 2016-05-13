@@ -26,15 +26,11 @@ import Game.Actions
 
 main =
   Html.App.program
-    { init = (initModel, Cmd.none)
+    { init = init
     , view = view
-    , update = \a m -> (update a m , Cmd.none)
-    , subscriptions = (\_ -> every second (Game.Actions.Time >> GameAction))
+    , update = update
+    , subscriptions = (\_ -> every second (Game.Actions.Time >> GameMsg))
     }
-
-
---port title : String
---port title = "A simple logic game"
 
 
 {- # MODEL -}
@@ -47,26 +43,27 @@ type alias Model =
   }
 
 
-initModel : Model
-initModel =
-  { game = Game.Model.init 0
-  , maxUnlocked = 0
-  , level = 0
-  }
+init =
+  ( { game = Game.Model.init 0
+    , maxUnlocked = 0
+    , level = 0
+    }
+  , Cmd.none )
 
 
-init : Int -> Model -> Model
-init index model =
-  { model |
-    game = Game.Model.init index
-  , level = index
-  }
+newLevel : Int -> Model -> (Model, Cmd Msg)
+newLevel index model =
+  ( { model |
+      game = Game.Model.init index
+    , level = index
+    }
+  , Cmd.none )
 
 
 {- # VIEW -}
 
 
-view : Model -> Html Action
+view : Model -> Html Msg
 view model =
   div
     [ style [("margin" , "10px")]
@@ -81,46 +78,48 @@ view model =
         , hidden (levelMax <= model.level)
         , onClick NextLevel
         ] [ text "Next level" ]
-    , Html.App.map GameAction (Game.View.view model.game)
+    , Html.App.map GameMsg (Game.View.view model.game)
     ]
 
 
 {- # ACTIONS AND UPDATE -}
 
 
-type Action
+type Msg
   = NoOp
-  | GameAction Game.Actions.Action
+  | GameMsg Game.Actions.Action
   | Restart
   | NextLevel
   | PreviousLevel
 
 
-update : Action -> Model -> Model
+update : Msg -> Model -> (Model, Cmd Msg)
 update action model =
   case action of
     NoOp ->
-      model
+      ( model , Cmd.none )
 
-    GameAction action ->
+    GameMsg action ->
       let
         game = Game.Update.update action model.game
       in
-        { model |
-          game = game
-        , maxUnlocked =
-            if game.finished then
-              Basics.max model.maxUnlocked <| model.level + 1
-            else
-              model.maxUnlocked
-        }
+        ( { model |
+            game = game
+          , maxUnlocked =
+              if game.finished then
+                Basics.max model.maxUnlocked <| model.level + 1
+              else
+                model.maxUnlocked
+          }
+        , Cmd.none
+        )
 
     Restart ->
-      init model.level model
+      newLevel model.level model
 
     NextLevel ->
-      init (model.level + 1) model
+      newLevel (model.level + 1) model
 
     PreviousLevel ->
-      init (model.level - 1) model
+      newLevel (model.level - 1) model
 
