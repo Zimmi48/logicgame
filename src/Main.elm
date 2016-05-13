@@ -44,20 +44,26 @@ type alias Model =
 
 
 init =
-  ( { game = Game.Model.init 0
+  let
+    (game, cmd) = Game.Model.init 0
+  in
+  ( { game = game
     , maxUnlocked = 0
     , level = 0
     }
-  , Cmd.none )
+  , cmd )
 
 
-newLevel : Int -> Model -> (Model, Cmd Msg)
+newLevel : Int -> Model -> (Model, Cmd msg)
 newLevel index model =
+  let
+    (game, cmd) = Game.Model.init index
+  in
   ( { model |
-      game = Game.Model.init index
+      game = game
     , level = index
     }
-  , Cmd.none )
+  , cmd )
 
 
 {- # VIEW -}
@@ -101,7 +107,7 @@ update action model =
 
     GameMsg action ->
       let
-        game = Game.Update.update action model.game
+        (game, cmd) = Game.Update.update action model.game
       in
         ( { model |
             game = game
@@ -111,7 +117,7 @@ update action model =
               else
                 model.maxUnlocked
           }
-        , Cmd.none
+        , cmd
         )
 
     Restart ->

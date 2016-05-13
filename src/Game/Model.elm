@@ -56,8 +56,11 @@ defaultModel =
   }
 
 
-init : Int -> Model
-init level =
+init : Int -> (Model, Cmd msg)
+init level = (init1 level, Cmd.none)
+
+
+init1 level =
   if level == 0 then
     { defaultModel |
       mainContext =
