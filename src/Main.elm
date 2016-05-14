@@ -26,7 +26,7 @@ main =
     { init = init
     , view = view
     , update = update
-    , subscriptions = (\_ -> every second (Game.time >> GameMsg))
+    , subscriptions = (\_ -> Sub.none)
     }
 
 
@@ -40,6 +40,7 @@ type alias Model =
   }
 
 
+init : (Model, Cmd Msg)
 init =
   let
     (game, cmd) = Game.init 0
@@ -48,10 +49,10 @@ init =
     , maxUnlocked = 0
     , level = 0
     }
-  , cmd )
+  , Cmd.map GameMsg cmd )
 
 
-newLevel : Int -> Model -> (Model, Cmd msg)
+newLevel : Int -> Model -> (Model, Cmd Msg)
 newLevel index model =
   let
     (game, cmd) = Game.init index
@@ -60,7 +61,7 @@ newLevel index model =
       game = game
     , level = index
     }
-  , cmd )
+  , Cmd.map GameMsg cmd )
 
 
 {- # VIEW -}
@@ -114,7 +115,7 @@ update action model =
               else
                 model.maxUnlocked
           }
-        , cmd
+        , Cmd.map GameMsg cmd
         )
 
     Restart ->

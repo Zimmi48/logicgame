@@ -1,10 +1,23 @@
-module Game.Model exposing (levelMax, Model, init, hints)
+module Game.Model exposing
+  ( levelMax
+  , Model
+  , init
+  , Action(..)
+  , HintStatus(..)
+  , wait
+  )
+-- TODO : wait tasks must have a way to check that the level has not changed
 
 
 import Array exposing (Array)
+import Task
+import Process
 import Time exposing (Time, second)
 import Game.Formula exposing (Formula(..))
 import Game.Context as Context exposing (Context)
+
+
+-- MODEL
 
 
 levelMax = 3
@@ -14,25 +27,23 @@ type alias Model =
   { mainContext : Context ()
   , contexts : Array (Context Formula)
   , goal : Formula
-  , hints : Hints
-  , message : String
+  -- Hints: the game must have been in some condition for at least 3 seconds
+  , hints :
+      Array
+        ( { mainContext : Context ()
+          , contexts : Array (Context Formula)
+          } -> Bool
+        , String
+        )
+  , hintStatus : HintStatus
+  , currentHint : String
   , selected : Maybe Formula
   , selectionContext : Maybe Formula
   , finished : Bool
-  , startTime : Maybe Time
-  , currentTime : Time
   }
 
 
-type Hints = Hints (Time -> Model -> String)
-
-
-hintsOfHints : Hints -> Time -> Model -> String
-hintsOfHints (Hints hints) = hints
-
-
-hints : Model -> String
-hints model = (hintsOfHints model.hints) model.currentTime model
+type HintStatus = NoHint | Waiting Int | Active Int
 
 
 a = Var "A"
@@ -46,22 +57,40 @@ defaultModel =
   { mainContext = Context.fromList []
   , contexts = Array.empty
   , goal = d
-  , hints = Hints (\_ _ -> "")
-  , message = ""
+  , hints = Array.empty
+  , hintStatus = NoHint
+  , currentHint = ""
   , selected = Nothing
   , selectionContext = Nothing
   , finished = False
-  , startTime = Nothing
-  , currentTime = 0
   }
 
 
-init : Int -> (Model, Cmd msg)
-init level = (init1 level, Cmd.none)
+wait : Int -> Cmd Action
+wait index =
+  Process.sleep (3 * second)
+  |> Task.perform (always NoOp) (always <| ChangeHint index)
+
+   
+init : Int -> (Model, Cmd Action)
+init level =
+  let game = init1 level in
+  ( game
+  , case game.hintStatus of
+      Waiting i ->
+        wait i
+
+      _ ->
+        Cmd.none
+  )
 
 
 init1 level =
   if level == 0 then
+    let condition { mainContext } =
+          Array.get 0 mainContext.formulas == Just (Impl a b)
+          && Array.get 2 mainContext.formulas == Just a
+    in
     { defaultModel |
       mainContext =
         Context.fromList
@@ -70,17 +99,8 @@ init1 level =
           , a
           , Impl b c
           ]
-    , hints =
-        Hints
-          (\time model ->
-              if time > 3 * second
-              && Array.get 0 model.mainContext.formulas == Just (Impl a b)
-              && Array.get 2 model.mainContext.formulas == Just a then
-                "Try moving A on A ⇒ B."
-
-              else
-                ""
-          )
+    , hints = Array.fromList [ ( condition , "Try moving A on A ⇒ B." ) ]
+    , hintStatus = Waiting 0
     }
 
   else if level == 1 then
@@ -96,6 +116,14 @@ init1 level =
     }
 
   else if level == 2 then
+    let
+      condition1 { contexts } =
+        Maybe.map (.formulas >> Array.isEmpty) (Array.get 0 contexts)
+        == Just True
+
+      condition2 { mainContext , contexts } =
+        Array.length mainContext.formulas == 4
+    in
     { defaultModel |
       mainContext =
         Context.fromList
@@ -106,17 +134,15 @@ init1 level =
           ]
     , contexts = Array.fromList [ Context.empty a ]
     , hints =
-        Hints
-          (\time model ->
-              if Maybe.map (.formulas >> Array.isEmpty) (Array.get 0 model.contexts) == Just False then
-                "You can also drag any formula out of the green context. "
-
-              else if time > 3 * second then
-                "You can drag and drop any formula into the green context. Some will just be copied, others will be transformed."
-
-              else
-                ""
-          )
+        Array.fromList
+          [ ( condition1
+            , "You can drag and drop any formula into the green context. Some will just be copied, others will be transformed."
+            )
+          , ( condition2
+            , "You can also drag any formula out of the green context. "
+            )
+          ]
+    , hintStatus = Waiting 0
     }
 
   else
@@ -131,3 +157,13 @@ init1 level =
           ]
     , contexts = Array.fromList [ Context.empty a , Context.empty b ]
     }
+
+
+-- ACTIONS
+
+
+type Action
+  = NoOp
+  | MainContextAction Context.Action
+  | ContextAction Int Formula Context.Action
+  | ChangeHint Int

@@ -7,8 +7,7 @@ import Html.App
 import Html.Attributes exposing (..)
 import DragDrop exposing (..)
 import Style exposing (..)
-import Game.Actions exposing (..)
-import Game.Model exposing (Model)
+import Game.Model exposing (Model, Action(..))
 import Game.Formula as Formula exposing (Formula(..))
 import Game.Context as Context exposing (Context)
 
@@ -107,6 +106,6 @@ view model =
         [ text <| "The goal is to get " ++ Formula.toString model.goal ++ "." ]
     , div
         [ style  [ fixedHeight , italic ] ]
-        [ text <| model.message ]
+        [ text <| if model.finished then "You win!" else model.currentHint ]
     ]
 
