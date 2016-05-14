@@ -14,22 +14,19 @@ import Time exposing (..)
 import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
-import Html.App
-import Game.View
-import Game.Update
-import Game.Model exposing (levelMax)
-import Game.Actions
+import Html.App as App
+import Game exposing (levelMax)
 
 
 {- # MAIN -}
 
 
 main =
-  Html.App.program
+  App.program
     { init = init
     , view = view
     , update = update
-    , subscriptions = (\_ -> every second (Game.Actions.Time >> GameMsg))
+    , subscriptions = (\_ -> every second (Game.time >> GameMsg))
     }
 
 
@@ -37,7 +34,7 @@ main =
 
 
 type alias Model =
-  { game : Game.Model.Model
+  { game : Game.Model
   , maxUnlocked : Int
   , level : Int
   }
@@ -45,7 +42,7 @@ type alias Model =
 
 init =
   let
-    (game, cmd) = Game.Model.init 0
+    (game, cmd) = Game.init 0
   in
   ( { game = game
     , maxUnlocked = 0
@@ -57,7 +54,7 @@ init =
 newLevel : Int -> Model -> (Model, Cmd msg)
 newLevel index model =
   let
-    (game, cmd) = Game.Model.init index
+    (game, cmd) = Game.init index
   in
   ( { model |
       game = game
@@ -84,7 +81,7 @@ view model =
         , hidden (levelMax <= model.level)
         , onClick NextLevel
         ] [ text "Next level" ]
-    , Html.App.map GameMsg (Game.View.view model.game)
+    , App.map GameMsg (Game.view model.game)
     ]
 
 
@@ -93,7 +90,7 @@ view model =
 
 type Msg
   = NoOp
-  | GameMsg Game.Actions.Action
+  | GameMsg Game.Msg
   | Restart
   | NextLevel
   | PreviousLevel
@@ -107,12 +104,12 @@ update action model =
 
     GameMsg action ->
       let
-        (game, cmd) = Game.Update.update action model.game
+        (game, cmd, finished) = Game.update action model.game
       in
         ( { model |
             game = game
           , maxUnlocked =
-              if game.finished then
+              if finished then
                 Basics.max model.maxUnlocked <| model.level + 1
               else
                 model.maxUnlocked

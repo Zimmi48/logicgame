@@ -24,8 +24,12 @@ addFormulaToMainContext formula action model =
   , finished = finished
   }
 
-update : Game.Actions.Action -> Model -> (Model, Cmd msg)
-update action model = ( update1 action model |> update2 , Cmd.none)
+update : Game.Actions.Action -> Model -> (Model, Cmd msg, Bool)
+update action model =
+  let
+    model = update1 action model |> update2
+  in
+    (model, Cmd.none, model.finished)
 
 update1 : Game.Actions.Action -> Model -> Model
 update1 action model =
