@@ -87,9 +87,18 @@ init level =
 
 init1 level =
   if level == 0 then
-    let condition { mainContext } =
-          Array.get 0 mainContext.formulas == Just (Impl a b)
-          && Array.get 2 mainContext.formulas == Just a
+    let
+      condition1 { mainContext } =
+        Array.get 0 mainContext.formulas == Just (Impl a b)
+        && Array.get 2 mainContext.formulas == Just a
+
+      condition2 { mainContext } =
+        ( Array.get 0 mainContext.formulas == Just (Impl a b)
+            && Array.get 2 mainContext.formulas == Just (Impl c d)
+        )
+        || ( Array.get 1 mainContext.formulas /= Just (Impl c d)
+               && Array.get 2 mainContext.formulas == Just b
+           )
     in
     { defaultModel |
       mainContext =
@@ -99,7 +108,13 @@ init1 level =
           , a
           , Impl b c
           ]
-    , hints = Array.fromList [ ( condition , "Try moving A on A ⇒ B." ) ]
+    , hints =
+        Array.fromList
+          [ ( condition1 , "Try moving A on A ⇒ B." )
+          , ( condition2
+            , "I think you ran into troubles: you might want to restart."
+            )
+          ]
     , hintStatus = Waiting 0
     }
 
