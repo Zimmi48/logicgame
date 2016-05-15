@@ -87,23 +87,21 @@ update2 model =
         ( model , Cmd.none )
 
       else
-        ( { model |
+        update2
+          { model |
             hintStatus = NoHint
           }
-        , Cmd.none
-        )
 
     Active index ->
       if condition index then
         ( model , Cmd.none )
 
       else
-        ( { model |
+        update2
+          { model |
             hintStatus = NoHint
           , currentHint = ""
           }
-        , Cmd.none
-        )
 
     NoHint ->
       let
@@ -118,11 +116,7 @@ update2 model =
       in
         case verified of
           Just i ->
-            ( { model |
-                hintStatus = Waiting i
-              }
-            , wait i
-            )
+            ( { model | hintStatus = Waiting i } , wait i )
 
           Nothing ->
             ( model , Cmd.none )
