@@ -1,24 +1,16 @@
 /* Code derived from  https://github.com/kurtharriger/elm-battleship */
 
 var _Zimmi48$logicgame$Native_DragDrop = function() {
-    localRuntime.Native = localRuntime.Native || {};
-    localRuntime.Native.DragDrop = localRuntime.Native.DragDrop || {};
-    if (localRuntime.Native.DragDrop.values) {
-	return localRuntime.Native.DragDrop.values;
-    }
-    
-    var Json = Elm.Native.Json.make(localRuntime);
-    var Signal = Elm.Native.Signal.make(localRuntime);
 
     function property(key, value) {
 	return {
-	    key: key,
+            key: key,
 	    value: value
 	};
     }
     
     function onDragStart(options, decoder, createMessage) {
-	var name = 'dragstart';
+
 	function eventHandler(event) {
 	    event.dataTransfer.setDragImage(event.target, 0, 0);
 	    // This stupid setData call is necessary to make drag and drop work on FF
@@ -35,11 +27,11 @@ var _Zimmi48$logicgame$Native_DragDrop = function() {
 		Signal.sendMessage(createMessage(value._0));
 	    }
 	}
-	return property('on' + name, eventHandler);
+	return property('ondragstart', eventHandler);
     }
 
     function onDragOver(options, decoder, createMessage) {
-	var name = 'dragover';
+
 	function eventHandler(event)
 	{
 	    
@@ -57,7 +49,7 @@ var _Zimmi48$logicgame$Native_DragDrop = function() {
 		Signal.sendMessage(createMessage(value._0));
 	    }
 	}
-	return property('on' + name, eventHandler);
+	return property('ondragover', eventHandler);
     }
 
     return {
